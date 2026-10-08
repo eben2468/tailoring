@@ -1,0 +1,41 @@
+# Secrets & environment
+.env
+.env.*
+!.env.example
+*.keystore
+*.jks
+key.properties
+google-services.json
+GoogleService-Info.plist
+service-account*.json
+
+# PHP (backend, ai-service)
+/backend/vendor/
+/ai-service/vendor/
+/ai-service/storage/*
+.phpunit.result.cache
+.php-cs-fixer.cache
+
+# Flutter / Dart
+/mobile/.dart_tool/
+/mobile/build/
+/mobile/.flutter-plugins
+/mobile/.flutter-plugins-dependencies
+/mobile/android/.gradle/
+/mobile/android/local.properties
+/mobile/ios/Pods/
+*.g.dart.bak
+
+# Database dumps / backups
+*.sql.gz
+/backups/
+
+# Editors & OS
+.idea/
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
+
+# PHPUnit
+/backend/.phpunit.cache/

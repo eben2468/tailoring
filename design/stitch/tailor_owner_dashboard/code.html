@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+
+<html class="h-full" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_tab" name="shell-type"/><title>SartorOS Bespoke</title><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "on-surface": "#111c2d", "on-tertiary-fixed": "#002113", "surface-dim": "#cfdaf2", "on-surface-variant": "#45474c", "on-secondary-container": "#fefcff", "surface-bright": "#f9f9ff", "surface-container-high": "#dee8ff", "inverse-surface": "#263143", "on-tertiary-container": "#009668", "secondary-container": "#316bf3", "surface-container-lowest": "#ffffff", "secondary-fixed-dim": "#b4c5ff", "on-background": "#111c2d", "on-primary": "#ffffff", "on-tertiary": "#ffffff", "on-secondary-fixed-variant": "#003ea8", "inverse-primary": "#bbc7e0", "secondary-fixed": "#dbe1ff", "surface-container": "#e7eeff", "primary-fixed-dim": "#bbc7e0", "surface": "#f9f9ff", "on-primary-fixed-variant": "#3c475c", "on-primary-container": "#78849c", "surface-container-highest": "#d8e3fb", "on-primary-fixed": "#101c2f", "inverse-on-surface": "#ecf1ff", "primary": "#000000", "on-error": "#ffffff", "tertiary-fixed": "#6ffbbe", "secondary": "#0051d5", "on-secondary-fixed": "#00174b", "outline-variant": "#c5c6cd", "tertiary": "#000000", "surface-container-low": "#f0f3ff", "error": "#ba1a1a", "surface-variant": "#d8e3fb", "on-tertiary-fixed-variant": "#005236", "on-secondary": "#ffffff", "primary-container": "#101c2f", "primary-fixed": "#d7e3fd", "error-container": "#ffdad6", "surface-tint": "#535f75", "background": "#f9f9ff", "outline": "#75777d", "tertiary-container": "#002113", "on-error-container": "#93000a", "tertiary-fixed-dim": "#4edea3" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "space-md": "0.75rem", "margin-tablet": "1.5rem", "space-xl": "1.5rem", "space-sm": "0.5rem", "space-xs": "0.25rem", "space-lg": "1rem", "gutter": "0.75rem", "gutter-tablet": "1rem", "margin": "1rem" }, "fontFamily": { "display-lg-mobile": ["Plus Jakarta Sans"], "label-sm": ["Plus Jakarta Sans"], "body-md": ["Plus Jakarta Sans"], "headline-md": ["Plus Jakarta Sans"], "body-sm": ["Plus Jakarta Sans"], "title-sm": ["Plus Jakarta Sans"], "headline-lg": ["Plus Jakarta Sans"], "metric-num": ["Plus Jakarta Sans"], "body-lg": ["Plus Jakarta Sans"], "label-md": ["Plus Jakarta Sans"], "display-lg": ["Plus Jakarta Sans"] }, "fontSize": { "display-lg-mobile": ["26px", { "lineHeight": "34px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "600" }], "body-md": ["13px", { "lineHeight": "18px", "fontWeight": "400" }], "headline-md": ["18px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }], "title-sm": ["15px", { "lineHeight": "20px", "fontWeight": "600" }], "headline-lg": ["22px", { "lineHeight": "28px", "letterSpacing": "-0.015em", "fontWeight": "600" }], "metric-num": ["20px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "700" }], "body-lg": ["15px", { "lineHeight": "22px", "fontWeight": "400" }], "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600" }], "display-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }] } } } }</script><style>@layer base{html,body{width:100vw;margin:0;padding:0;min-height:100%;}body{overscroll-behavior-y:none;-webkit-tap-highlight-color:transparent;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}}::-webkit-scrollbar{display:none;}</style></head><body class="bg-surface text-on-surface antialiased flex flex-col min-h-screen selection:bg-secondary-fixed"><header class="fixed top-0 w-full z-50 pt-safe bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 px-margin flex items-center justify-between gap-space-sm"><div class="flex items-center gap-space-sm min-w-0"><img alt="SartorOS Monogram Logo" class="h-8 w-auto object-contain flex-shrink-0" src="https://lh3.googleusercontent.com/aida/AEtjO1UaXdcaeMhgZdDbd94C0vU9bFZ5ffBtJ-c_C14-VrfYhUZz77I65929LjcS_aUOg72MZxkwMO-hI-IcGHNMT5TJVZF-9C6M2BhRsqYdJE1QChw3jq7tZ0CxFVhYaKMhqwGxo-g8NmqrTn-muqXYkPZ2M5JuZpUo4wnoGnysUQqYQyQJE8XiidJuABw8Nlm_-SBb9L-Gby0o6w3YZe2xwG4SlzkSYOSwTx7uwSBaVnlB"/><div class="flex flex-col min-w-0"><div class="flex items-center gap-1.5"><span class="font-title-sm text-title-sm text-on-surface tracking-tight truncate">SartorOS Bespoke</span><span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-[10px] leading-tight flex-shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-tertiary-fixed-dim"></span>Studio</span></div><span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider truncate">Dashboard</span></div></div><div class="flex items-center gap-space-xs flex-shrink-0"><button aria-label="Notifications" class="relative w-11 h-11 flex items-center justify-center rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" type="button"><span class="material-symbols-outlined text-[22px]">notifications</span><span class="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-secondary ring-2 ring-surface"></span></button><div class="flex items-center pl-space-xs"><img alt="Profile" class="w-8 h-8 rounded-full object-cover ring-1 ring-surface-container-high" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAESmiSUn-R2d4OMA-QraQjXL6w8KmACl5Ovo-3oirDD4dMvZFbYw1VQN0jFyLmDtvzh7zzgaR5gw99_GfVdAmAIOo0aLTKvHfjLwes-lbLD2KI0aRArJNQXb8Ekw0b6qsa-XvmiuLXRTIxVWioAehlZE2BAFGFQXkBCgO9IuJbRPoUCUOh5tVuS_15L7LhOy2_9POoi5YpoNkqOG_IWw5RA19zXx2Ww1mrGD5TUTY"/></div></div></div></header><main class="flex-1 w-full bg-surface pt-16 pb-20"><div class="flex flex-col w-full">
+<div class="px-margin pt-space-md pb-space-lg flex flex-col gap-space-lg">
+<div class="flex items-center justify-between gap-space-sm">
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-headline-lg text-headline-lg text-on-surface tracking-tight truncate">Morning, Marcus</span>
+<span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-secondary-fixed text-on-secondary-fixed">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">cut</span>
+</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mt-0.5">Thursday, Oct 12 • 4 fittings scheduled</p>
+</div>
+<div class="flex items-center gap-1.5 px-space-md py-1.5 rounded-full bg-surface-container-high shadow-sm flex-shrink-0">
+<span class="w-2 h-2 rounded-full bg-tertiary-fixed-dim animate-pulse"></span>
+<span class="font-label-sm text-label-sm text-on-tertiary-container tracking-wide uppercase">Shop Open</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-gutter">
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Active Jobs</span>
+<div class="w-7 h-7 rounded-lg bg-surface-container flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[18px]">straighten</span>
+</div>
+</div>
+<div class="mt-space-sm">
+<div class="font-display-lg-mobile text-display-lg-mobile text-on-surface">14</div>
+<p class="font-body-sm text-body-sm text-secondary font-medium truncate mt-0.5">3 in final fitting</p>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Due Today</span>
+<div class="w-7 h-7 rounded-lg bg-surface-container-high flex items-center justify-center text-on-primary-fixed-variant">
+<span class="material-symbols-outlined text-[18px]">schedule</span>
+</div>
+</div>
+<div class="mt-space-sm">
+<div class="font-display-lg-mobile text-display-lg-mobile text-on-surface">2</div>
+<div class="inline-flex items-center gap-1 mt-0.5 px-1.5 py-0.5 rounded bg-surface-container-highest text-on-surface-variant">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+<span class="font-label-sm text-[10px] uppercase font-semibold">1 fit, 1 pickup</span>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Overdue</span>
+<div class="w-7 h-7 rounded-lg bg-tertiary-fixed/40 flex items-center justify-center text-on-tertiary-container">
+<span class="material-symbols-outlined text-[18px]">check_circle</span>
+</div>
+</div>
+<div class="mt-space-sm">
+<div class="font-display-lg-mobile text-display-lg-mobile text-on-surface">0</div>
+<p class="font-body-sm text-body-sm text-on-tertiary-container font-medium truncate mt-0.5">All on schedule</p>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">This Week</span>
+<div class="w-7 h-7 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">checkroom</span>
+</div>
+</div>
+<div class="mt-space-sm">
+<div class="font-display-lg-mobile text-display-lg-mobile text-on-surface">8</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant truncate mt-0.5">Suits &amp; separates</p>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[18px] text-secondary">timelapse</span>
+<span class="font-title-sm text-title-sm text-on-surface font-semibold">Today's Workload</span>
+</div>
+<span class="font-label-md text-label-md text-secondary font-bold">6.5h remaining</span>
+</div>
+<div class="w-full h-2.5 rounded-full bg-surface-container flex overflow-hidden">
+<div class="bg-secondary-container h-full" style="width: 31%;" title="Cutting 2h"></div>
+<div class="bg-secondary h-full" style="width: 54%;" title="Sewing 3.5h"></div>
+<div class="bg-tertiary-fixed-dim h-full" style="width: 15%;" title="Fitting 1h"></div>
+</div>
+<div class="flex items-center justify-between pt-1 text-on-surface-variant font-label-sm text-label-sm">
+<span class="inline-flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-secondary-container"></span>Cutting (2h)
+        </span>
+<span class="inline-flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>Sewing (3.5h)
+        </span>
+<span class="inline-flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-tertiary-fixed-dim"></span>Fitting (1h)
+        </span>
+</div>
+</div>
+<div class="bg-primary-container text-on-primary rounded-xl p-space-md shadow-md flex flex-col gap-space-sm relative overflow-hidden">
+<div class="absolute -right-6 -bottom-6 w-28 h-28 bg-secondary/15 rounded-full blur-2xl pointer-events-none"></div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px] text-tertiary-fixed" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-primary-fixed">Sartor AI Velocity Insight</span>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-white/10 text-primary-fixed font-label-sm text-[10px] uppercase font-semibold">Action Advised</span>
+</div>
+<p class="font-body-md text-body-md text-inverse-on-surface leading-snug">
+        18h remaining this week. Based on cutting pace, <strong class="text-on-primary">Job #024 (Kofi Mensah)</strong> risks a 1-day slippage unless pattern shearing is completed before 11:00 AM.
+      </p>
+<div class="flex items-center gap-space-sm pt-space-xs">
+<button class="flex-1 py-2 px-3 rounded-lg bg-surface-container-lowest text-on-surface font-label-md text-label-md text-center font-bold hover:bg-surface transition-colors shadow-sm active:scale-95" type="button">
+          Optimize Schedule
+        </button>
+<button class="py-2 px-3 rounded-lg bg-white/10 text-primary-fixed font-label-md text-label-md text-center hover:bg-white/15 transition-colors" type="button">
+          View Detail
+        </button>
+</div>
+</div>
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="font-headline-md text-headline-md text-on-surface">Production Schedule</span>
+<span class="px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm font-semibold">4 Tasks</span>
+</div>
+<button class="inline-flex items-center gap-1 text-secondary font-label-md text-label-md hover:underline font-semibold" type="button">
+<span>Start Next</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+<div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-md flex flex-col gap-space-md">
+<div class="flex items-start gap-space-md">
+<div class="flex flex-col items-center flex-shrink-0 w-12 pt-0.5">
+<span class="font-metric-num text-metric-num text-on-surface">08:30</span>
+<span class="font-label-sm text-[10px] text-on-surface-variant uppercase">AM</span>
+<div class="w-0.5 h-10 bg-secondary/30 mt-2"></div>
+</div>
+<div class="flex-1 min-w-0 bg-surface-container-low rounded-lg p-space-sm flex flex-col gap-space-xs">
+<div class="flex items-center justify-between gap-1">
+<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-secondary-fixed text-on-secondary-fixed-variant font-label-sm text-[10px] font-semibold uppercase">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary animate-ping"></span>In Progress
+              </span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">2 hrs</span>
+</div>
+<div>
+<h4 class="font-title-sm text-title-sm text-on-surface truncate">Cutting — Kofi Mensah</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant truncate">3-Piece Savile Navy Suit (14oz Dormeuil)</p>
+</div>
+<div class="pt-1 flex items-center justify-between">
+<button class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-secondary text-on-secondary font-label-sm text-label-sm active:scale-95 transition-transform shadow-xs" type="button">
+<span class="material-symbols-outlined text-[15px]">pause</span>
+<span>Pause Timer</span>
+</button>
+<span class="font-metric-num text-metric-num text-secondary" id="timer-display">01:14:28</span>
+</div>
+</div>
+</div>
+<div class="flex items-start gap-space-md">
+<div class="flex flex-col items-center flex-shrink-0 w-12 pt-0.5">
+<span class="font-metric-num text-metric-num text-on-surface">11:00</span>
+<span class="font-label-sm text-[10px] text-on-surface-variant uppercase">AM</span>
+<div class="w-0.5 h-10 bg-surface-container-highest mt-2"></div>
+</div>
+<div class="flex-1 min-w-0 bg-surface rounded-lg p-space-sm flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<span class="inline-flex items-center px-1.5 py-0.5 rounded bg-surface-container-highest text-on-surface-variant font-label-sm text-[10px] font-semibold uppercase">Up Next</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">3 hrs</span>
+</div>
+<div>
+<h4 class="font-title-sm text-title-sm text-on-surface truncate">Sewing — Kwame Asante</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant truncate">Linen Kaftan Set • Hand Baste Lapels</p>
+</div>
+</div>
+</div>
+<div class="flex items-start gap-space-md">
+<div class="flex flex-col items-center flex-shrink-0 w-12 pt-0.5">
+<span class="font-metric-num text-metric-num text-on-surface">02:30</span>
+<span class="font-label-sm text-[10px] text-on-surface-variant uppercase">PM</span>
+<div class="w-0.5 h-10 bg-surface-container-highest mt-2"></div>
+</div>
+<div class="flex-1 min-w-0 bg-surface rounded-lg p-space-sm flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<span class="inline-flex items-center px-1.5 py-0.5 rounded bg-surface-container-high text-secondary font-label-sm text-[10px] font-semibold uppercase">Fitting Room 1</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">1 hr</span>
+</div>
+<div>
+<h4 class="font-title-sm text-title-sm text-on-surface truncate">Final Fitting — Ama Mensah</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant truncate">Structured Bespoke Blazer (Emerald Silk)</p>
+</div>
+</div>
+</div>
+<div class="flex items-start gap-space-md">
+<div class="flex flex-col items-center flex-shrink-0 w-12 pt-0.5">
+<span class="font-metric-num text-metric-num text-on-surface">04:00</span>
+<span class="font-label-sm text-[10px] text-on-surface-variant uppercase">PM</span>
+</div>
+<div class="flex-1 min-w-0 bg-surface rounded-lg p-space-sm flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<span class="inline-flex items-center px-1.5 py-0.5 rounded bg-surface-container text-on-surface-variant font-label-sm text-[10px] font-semibold uppercase">Finishing</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">30 mins</span>
+</div>
+<div>
+<h4 class="font-title-sm text-title-sm text-on-surface truncate">QC &amp; Steam Press — David Sterling</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant truncate">Midnight Tuxedo • Client Pickup Tomorrow</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-headline-md text-headline-md text-on-surface">Priority Commission Jobs</span>
+<a class="font-label-md text-label-md text-secondary hover:underline font-semibold" href="#">View All 14</a>
+</div>
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col gap-space-sm">
+<div class="flex items-start justify-between gap-space-xs">
+<div class="min-w-0">
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm font-semibold text-secondary">#024</span>
+<h4 class="font-title-sm text-title-sm text-on-surface truncate font-semibold">Kofi Mensah</h4>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">3-Piece Savile Navy Suit • Step 3 of 6 (Sewing)</p>
+</div>
+<span class="inline-flex items-center px-2 py-0.5 rounded-full bg-error-container text-on-error-container font-label-sm text-[11px] font-bold flex-shrink-0">
+            High Priority
+          </span>
+</div>
+<div class="flex flex-col gap-1.5 pt-1">
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm">
+<span>Overall Progress</span>
+<span class="font-semibold text-on-surface">65%</span>
+</div>
+<div class="w-full h-2 rounded-full bg-surface-container overflow-hidden">
+<div class="bg-secondary h-full rounded-full transition-all duration-500" style="width: 65%;"></div>
+</div>
+</div>
+<div class="grid grid-cols-3 gap-2 pt-1 text-center">
+<div class="bg-surface-container-low rounded-lg p-2">
+<span class="font-label-sm text-[10px] text-on-surface-variant uppercase block">Logged</span>
+<span class="font-metric-num text-metric-num text-on-surface">10.5h</span>
+</div>
+<div class="bg-surface-container-low rounded-lg p-2">
+<span class="font-label-sm text-[10px] text-on-surface-variant uppercase block">Remaining</span>
+<span class="font-metric-num text-metric-num text-secondary">5.5h</span>
+</div>
+<div class="bg-surface-container-low rounded-lg p-2">
+<span class="font-label-sm text-[10px] text-on-surface-variant uppercase block">Due Date</span>
+<span class="font-title-sm text-title-sm text-on-surface font-semibold">Oct 14</span>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col gap-space-sm">
+<div class="flex items-start justify-between gap-space-xs">
+<div class="min-w-0">
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm font-semibold text-secondary">#026</span>
+<h4 class="font-title-sm text-title-sm text-on-surface truncate font-semibold">Marcus Vance</h4>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Double-Breasted Cashmere Blazer • Step 1 of 6 (Cutting)</p>
+</div>
+<span class="inline-flex items-center px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-[11px] font-semibold flex-shrink-0">
+            Normal
+          </span>
+</div>
+<div class="flex flex-col gap-1.5 pt-1">
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm">
+<span>Overall Progress</span>
+<span class="font-semibold text-on-surface">30%</span>
+</div>
+<div class="w-full h-2 rounded-full bg-surface-container overflow-hidden">
+<div class="bg-secondary-container h-full rounded-full transition-all duration-500" style="width: 30%;"></div>
+</div>
+</div>
+<div class="grid grid-cols-3 gap-2 pt-1 text-center">
+<div class="bg-surface-container-low rounded-lg p-2">
+<span class="font-label-sm text-[10px] text-on-surface-variant uppercase block">Logged</span>
+<span class="font-metric-num text-metric-num text-on-surface">4.2h</span>
+</div>
+<div class="bg-surface-container-low rounded-lg p-2">
+<span class="font-label-sm text-[10px] text-on-surface-variant uppercase block">Remaining</span>
+<span class="font-metric-num text-metric-num text-secondary">9.8h</span>
+</div>
+<div class="bg-surface-container-low rounded-lg p-2">
+<span class="font-label-sm text-[10px] text-on-surface-variant uppercase block">Due Date</span>
+<span class="font-title-sm text-title-sm text-on-surface font-semibold">Oct 18</span>
+</div>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-headline-md text-headline-md text-on-surface">Atelier Health &amp; Stock</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">2 Alerts</span>
+</div>
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-on-surface flex-shrink-0">
+<span class="material-symbols-outlined text-[20px]">layers</span>
+</div>
+<div class="min-w-0">
+<h4 class="font-title-sm text-title-sm text-on-surface truncate">White Silk Basting Thread</h4>
+<p class="font-body-sm text-body-sm text-error font-medium truncate">3 spools left (Min: 10)</p>
+</div>
+</div>
+<button class="px-3 py-1.5 rounded-lg bg-surface-container-high text-on-surface font-label-sm text-label-sm font-semibold hover:bg-surface-container transition-colors flex-shrink-0 active:scale-95" type="button">
+          Reorder
+        </button>
+</div>
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-on-surface flex-shrink-0">
+<span class="material-symbols-outlined text-[20px]">precision_manufacturing</span>
+</div>
+<div class="min-w-0">
+<h4 class="font-title-sm text-title-sm text-on-surface truncate">Juki Industrial Sewing #02</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant truncate">Maintenance due in 3 days</p>
+</div>
+</div>
+<button class="px-3 py-1.5 rounded-lg bg-surface-container-low text-on-surface font-label-sm text-label-sm font-semibold hover:bg-surface-container transition-colors flex-shrink-0" type="button">
+          Log
+        </button>
+</div>
+</div>
+</div>
+</div>
+<script>
+  (function() {
+    let seconds = 28 + (14 * 60) + (1 * 3600);
+    const timerEl = document.getElementById('timer-display');
+    if (!timerEl) return;
+    setInterval(() => {
+      seconds++;
+      const hrs = String(Math.floor(seconds / 3600)).padStart(2, '0');
+      const mins = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+      const secs = String(seconds % 60).padStart(2, '0');
+      timerEl.textContent = `${hrs}:${mins}:${secs}`;
+    }, 1000);
+  })();
+</script></main><nav class="fixed bottom-0 w-full z-50 pb-safe bg-surface/90 backdrop-blur-xl shadow-[0_-4px_20px_rgba(15,27,46,0.06)]" data-active-classes="text-primary-container font-semibold [&amp;_span.material-symbols-outlined]:text-primary-container [&amp;_.nav-indicator]:opacity-100"><div class="h-16 px-space-xs grid grid-cols-5 items-stretch"><a aria-current="page" class="group relative flex flex-col items-center justify-center min-h-[44px] py-1 transition-colors text-primary-container font-semibold [&amp;_span.material-symbols-outlined]:text-primary-container [&amp;_.nav-indicator]:opacity-100" data-path="dashboard" href="#"><span class="nav-indicator absolute top-1.5 w-6 h-0.5 rounded-full bg-primary-container opacity-0 transition-opacity"></span><span class="material-symbols-outlined text-[22px] transition-transform group-active:scale-95">grid_view</span><span class="font-label-sm text-label-sm mt-0.5 tracking-tight">Dashboard</span></a><a class="group relative flex flex-col items-center justify-center min-h-[44px] py-1 text-on-surface-variant hover:text-on-surface transition-colors" data-path="jobs" href="#"><span class="nav-indicator absolute top-1.5 w-6 h-0.5 rounded-full bg-primary-container opacity-0 transition-opacity"></span><span class="material-symbols-outlined text-[22px] transition-transform group-active:scale-95">content_cut</span><span class="font-label-sm text-label-sm mt-0.5 tracking-tight">Jobs</span></a><a class="group relative flex flex-col items-center justify-center min-h-[44px] py-1 text-on-surface-variant hover:text-on-surface transition-colors" data-path="calendar" href="#"><span class="nav-indicator absolute top-1.5 w-6 h-0.5 rounded-full bg-primary-container opacity-0 transition-opacity"></span><span class="material-symbols-outlined text-[22px] transition-transform group-active:scale-95">calendar_month</span><span class="font-label-sm text-label-sm mt-0.5 tracking-tight">Calendar</span></a><a class="group relative flex flex-col items-center justify-center min-h-[44px] py-1 text-on-surface-variant hover:text-on-surface transition-colors" data-path="customers" href="#"><span class="nav-indicator absolute top-1.5 w-6 h-0.5 rounded-full bg-primary-container opacity-0 transition-opacity"></span><span class="material-symbols-outlined text-[22px] transition-transform group-active:scale-95">contacts</span><span class="font-label-sm text-label-sm mt-0.5 tracking-tight">Customers</span></a><a class="group relative flex flex-col items-center justify-center min-h-[44px] py-1 text-on-surface-variant hover:text-on-surface transition-colors" data-path="more-menu" href="#"><span class="nav-indicator absolute top-1.5 w-6 h-0.5 rounded-full bg-primary-container opacity-0 transition-opacity"></span><span class="material-symbols-outlined text-[22px] transition-transform group-active:scale-95">widgets</span><span class="font-label-sm text-label-sm mt-0.5 tracking-tight">More</span></a></div></nav></body></html>

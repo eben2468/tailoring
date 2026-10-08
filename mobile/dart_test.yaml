@@ -1,0 +1,5 @@
+tags:
+  golden:
+    description: "Screenshot tests (run: flutter test --tags golden --update-goldens)"
+  live:
+    description: "Contract tests against the running local API (docker compose stack)"

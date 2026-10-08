@@ -1,0 +1,71 @@
+# Local development stack.
+#   docker compose -f infra/docker-compose.yml up -d --build
+#   API:   http://localhost:8080/api/v1/health
+#   MySQL: localhost:3307 (XAMPP's MariaDB can keep 3306)
+name: nutofe
+
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: nutofe-mysql
+    restart: unless-stopped
+    # Server settings are passed as flags, not a mounted .cnf: files bind-mounted from Windows
+    # appear world-writable and mysqld silently ignores them.
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+      - --default-time-zone=+00:00
+      - --sql-mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,ONLY_FULL_GROUP_BY
+      - --transaction-isolation=READ-COMMITTED
+      - --innodb-lock-wait-timeout=10
+      - --max-allowed-packet=32M
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_dev_only}
+      MYSQL_DATABASE: nutofe
+      MYSQL_USER: nutofe_app
+      MYSQL_PASSWORD: ${MYSQL_APP_PASSWORD:-app_dev_only}
+      TZ: UTC
+    volumes:
+      - nutofe_mysql_data:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d:ro
+      - ../database:/database:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${MYSQL_ROOT_PASSWORD:-root_dev_only}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  php:
+    build: ./php
+    container_name: nutofe-php
+    restart: unless-stopped
+    # No env_file: Laravel reads backend/.env itself. Injecting it as container environment would
+    # override phpunit.xml (server variables win) and point the tests at the dev database.
+    volumes:
+      - ../backend:/var/www/backend
+      # vendor/ lives in a Docker volume, not on the Windows bind mount: Laravel loads hundreds of
+      # library files per request and bind-mount file checks made every request take seconds.
+      # Your own code (app/, config/, routes/ …) stays bind-mounted, so edits apply immediately.
+      - nutofe_backend_vendor:/var/www/backend/vendor
+      - ../database:/var/www/database:ro
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: nutofe-nginx
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ../backend/public:/var/www/backend/public:ro
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - php
+
+volumes:
+  nutofe_mysql_data:
+  nutofe_backend_vendor:

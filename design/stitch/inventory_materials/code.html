@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+
+<html class="h-full" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_tab" name="shell-type"/><title>SartorOS Bespoke</title><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "on-surface": "#111c2d", "on-tertiary-fixed": "#002113", "surface-dim": "#cfdaf2", "on-surface-variant": "#45474c", "on-secondary-container": "#fefcff", "surface-bright": "#f9f9ff", "surface-container-high": "#dee8ff", "inverse-surface": "#263143", "on-tertiary-container": "#009668", "secondary-container": "#316bf3", "surface-container-lowest": "#ffffff", "secondary-fixed-dim": "#b4c5ff", "on-background": "#111c2d", "on-primary": "#ffffff", "on-tertiary": "#ffffff", "on-secondary-fixed-variant": "#003ea8", "inverse-primary": "#bbc7e0", "secondary-fixed": "#dbe1ff", "surface-container": "#e7eeff", "primary-fixed-dim": "#bbc7e0", "surface": "#f9f9ff", "on-primary-fixed-variant": "#3c475c", "on-primary-container": "#78849c", "surface-container-highest": "#d8e3fb", "on-primary-fixed": "#101c2f", "inverse-on-surface": "#ecf1ff", "primary": "#000000", "on-error": "#ffffff", "tertiary-fixed": "#6ffbbe", "secondary": "#0051d5", "on-secondary-fixed": "#00174b", "outline-variant": "#c5c6cd", "tertiary": "#000000", "surface-container-low": "#f0f3ff", "error": "#ba1a1a", "surface-variant": "#d8e3fb", "on-tertiary-fixed-variant": "#005236", "on-secondary": "#ffffff", "primary-container": "#101c2f", "primary-fixed": "#d7e3fd", "error-container": "#ffdad6", "surface-tint": "#535f75", "background": "#f9f9ff", "outline": "#75777d", "tertiary-container": "#002113", "on-error-container": "#93000a", "tertiary-fixed-dim": "#4edea3" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "space-md": "0.75rem", "margin-tablet": "1.5rem", "space-xl": "1.5rem", "space-sm": "0.5rem", "space-xs": "0.25rem", "space-lg": "1rem", "gutter": "0.75rem", "gutter-tablet": "1rem", "margin": "1rem" }, "fontFamily": { "display-lg-mobile": ["Plus Jakarta Sans"], "label-sm": ["Plus Jakarta Sans"], "body-md": ["Plus Jakarta Sans"], "headline-md": ["Plus Jakarta Sans"], "body-sm": ["Plus Jakarta Sans"], "title-sm": ["Plus Jakarta Sans"], "headline-lg": ["Plus Jakarta Sans"], "metric-num": ["Plus Jakarta Sans"], "body-lg": ["Plus Jakarta Sans"], "label-md": ["Plus Jakarta Sans"], "display-lg": ["Plus Jakarta Sans"] }, "fontSize": { "display-lg-mobile": ["26px", { "lineHeight": "34px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "600" }], "body-md": ["13px", { "lineHeight": "18px", "fontWeight": "400" }], "headline-md": ["18px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }], "title-sm": ["15px", { "lineHeight": "20px", "fontWeight": "600" }], "headline-lg": ["22px", { "lineHeight": "28px", "letterSpacing": "-0.015em", "fontWeight": "600" }], "metric-num": ["20px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "700" }], "body-lg": ["15px", { "lineHeight": "22px", "fontWeight": "400" }], "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600" }], "display-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }] } } } }</script><style>@layer base{html,body{width:100vw;margin:0;padding:0;min-height:100%;}body{overscroll-behavior-y:none;-webkit-tap-highlight-color:transparent;min-height:max(884px,100dvh);}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}}::-webkit-scrollbar{display:none;}</style></head><body class="bg-surface text-on-surface antialiased flex flex-col min-h-screen selection:bg-secondary-fixed"><header class="fixed top-0 w-full z-50 pt-safe bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 px-margin flex items-center justify-between gap-space-sm"><div class="flex items-center gap-space-sm min-w-0"><img alt="SartorOS Monogram Logo" class="h-8 w-auto object-contain flex-shrink-0" src="https://lh3.googleusercontent.com/aida/AEtjO1UaXdcaeMhgZdDbd94C0vU9bFZ5ffBtJ-c_C14-VrfYhUZz77I65929LjcS_aUOg72MZxkwMO-hI-IcGHNMT5TJVZF-9C6M2BhRsqYdJE1QChw3jq7tZ0CxFVhYaKMhqwGxo-g8NmqrTn-muqXYkPZ2M5JuZpUo4wnoGnysUQqYQyQJE8XiidJuABw8Nlm_-SBb9L-Gby0o6w3YZe2xwG4SlzkSYOSwTx7uwSBaVnlB"/><div class="flex flex-col min-w-0"><div class="flex items-center gap-1.5"><span class="font-title-sm text-title-sm text-on-surface tracking-tight truncate">SartorOS Bespoke</span><span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-[10px] leading-tight flex-shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-tertiary-fixed-dim"></span>Studio</span></div><span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider truncate">Inventory &amp; Materials</span></div></div><div class="flex items-center gap-space-xs flex-shrink-0"><button aria-label="Notifications" class="relative w-11 h-11 flex items-center justify-center rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" type="button"><span class="material-symbols-outlined text-[22px]">notifications</span><span class="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-secondary ring-2 ring-surface"></span></button><div class="flex items-center pl-space-xs"><img alt="Profile" class="w-8 h-8 rounded-full object-cover ring-1 ring-surface-container-high" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAESmiSUn-R2d4OMA-QraQjXL6w8KmACl5Ovo-3oirDD4dMvZFbYw1VQN0jFyLmDtvzh7zzgaR5gw99_GfVdAmAIOo0aLTKvHfjLwes-lbLD2KI0aRArJNQXb8Ekw0b6qsa-XvmiuLXRTIxVWioAehlZE2BAFGFQXkBCgO9IuJbRPoUCUOh5tVuS_15L7LhOy2_9POoi5YpoNkqOG_IWw5RA19zXx2Ww1mrGD5TUTY"/></div></div></div></header><main class="flex-1 w-full bg-surface pt-16 pb-20"><div class="flex flex-col w-full pb-10">
+<!-- Search & Atelier Quick Filter Bar -->
+<div class="px-margin pt-space-md pb-space-sm flex flex-col gap-space-sm">
+<div class="flex items-center gap-space-sm">
+<div class="flex-1 relative flex items-center">
+<span class="material-symbols-outlined absolute left-3 text-on-surface-variant text-[20px] pointer-events-none">search</span>
+<input class="w-full bg-surface-container-lowest text-on-surface font-body-md text-body-md pl-10 pr-9 py-2.5 rounded-xl shadow-sm outline-none focus:bg-surface-container-low transition-colors placeholder:text-on-surface-variant/60" id="inventory-search" placeholder="Search swatch, bolt, lot #, or shelf..." type="text"/>
+<button aria-label="Clear search" class="hidden absolute right-2.5 w-6 h-6 items-center justify-center rounded-full text-on-surface-variant hover:text-on-surface transition-colors" id="clear-search-btn">
+<span class="material-symbols-outlined text-[16px]">close</span>
+</button>
+</div>
+<button aria-label="Scan bolt swatch barcode" class="h-11 px-3.5 bg-surface-container-lowest hover:bg-surface-container text-on-surface rounded-xl shadow-sm flex items-center gap-1.5 transition-colors flex-shrink-0 active:scale-95" id="btn-scan-qr">
+<span class="material-symbols-outlined text-[20px]">qr_code_scanner</span>
+<span class="font-label-sm text-label-sm hidden xs:inline tracking-tight">Scan</span>
+</button>
+<button class="h-11 px-3.5 bg-primary-container text-on-primary rounded-xl shadow-sm flex items-center gap-1.5 transition-colors flex-shrink-0 active:scale-95" id="btn-add-material">
+<span class="material-symbols-outlined text-[20px]">add</span>
+<span class="font-label-sm text-label-sm tracking-tight">+ Material</span>
+</button>
+</div>
+</div>
+<!-- Stock Health Metric Cards (Swipeable Carousel) -->
+<div class="pt-space-xs pb-space-sm">
+<div class="flex gap-space-sm overflow-x-auto px-margin no-scrollbar snap-x">
+<!-- Total Items -->
+<div class="min-w-[150px] flex-1 bg-surface-container-lowest rounded-xl p-3.5 shadow-sm snap-start flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Atelier Items</span>
+<span class="material-symbols-outlined text-secondary text-[18px]">inventory_2</span>
+</div>
+<div class="mt-2.5">
+<div class="font-metric-num text-metric-num text-on-surface">148</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant/80 mt-0.5">Across 6 vaults</div>
+</div>
+</div>
+<!-- Low Stock -->
+<div class="min-w-[140px] flex-1 bg-surface-container-lowest rounded-xl p-3.5 shadow-sm snap-start flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Low Stock</span>
+<span class="w-2 h-2 rounded-full bg-secondary-container"></span>
+</div>
+<div class="mt-2.5">
+<div class="font-metric-num text-metric-num text-on-surface flex items-baseline gap-1.5">
+<span>3</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.2 rounded bg-surface-container-high text-on-surface">Threshold</span>
+</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant/80 mt-0.5">Needs review</div>
+</div>
+</div>
+<!-- Out of Stock -->
+<div class="min-w-[140px] flex-1 bg-surface-container-lowest rounded-xl p-3.5 shadow-sm snap-start flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Depleted</span>
+<span class="w-2 h-2 rounded-full bg-error"></span>
+</div>
+<div class="mt-2.5">
+<div class="font-metric-num text-metric-num text-error flex items-baseline gap-1.5">
+<span>1</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.2 rounded bg-error-container text-on-error-container">Critical</span>
+</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant/80 mt-0.5">Savile Horsehair</div>
+</div>
+</div>
+<!-- Vault Asset Valuation -->
+<div class="min-w-[185px] bg-surface-container-lowest rounded-xl p-3.5 shadow-sm snap-start flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Vault Asset Value</span>
+<span class="material-symbols-outlined text-on-tertiary-container text-[18px]">verified</span>
+</div>
+<div class="mt-2.5">
+<div class="font-metric-num text-metric-num text-on-surface">$24,850</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant/80 mt-0.5 truncate">Fine cloth &amp; trims</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Urgent Reorder Alert Banner -->
+<div class="px-margin my-space-xs">
+<div class="bg-surface-container-high/60 rounded-xl p-3.5 shadow-sm flex flex-col gap-space-sm relative overflow-hidden">
+<div class="flex items-start justify-between gap-2">
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-lg bg-surface-container-lowest flex items-center justify-center text-secondary shadow-xs">
+<span class="material-symbols-outlined text-[17px]">emergency_heat</span>
+</div>
+<div>
+<div class="font-title-sm text-title-sm text-on-surface tracking-tight">Atelier Supply Replenishment</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">2 items breached bench threshold</div>
+</div>
+</div>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-surface-container-lowest text-on-surface shadow-xs">Priority</span>
+</div>
+<div class="grid grid-cols-1 gap-2 pt-1">
+<div class="bg-surface-container-lowest/90 rounded-lg p-2.5 flex items-center justify-between">
+<div class="min-w-0 pr-2">
+<div class="font-label-md text-label-md text-on-surface truncate">White Silk Basting Thread No. 40</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1.5 mt-0.5">
+<span class="text-error font-medium">3 spools left</span>
+<span class="text-outline-variant">•</span>
+<span>Min safety: 10 spools</span>
+</div>
+</div>
+<button class="px-2.5 py-1.5 rounded-lg bg-primary-container text-on-primary font-label-sm text-label-sm flex-shrink-0 active:scale-95 transition-transform" onclick="triggerLotReorder('Silk Basting Thread No. 40')">
+            Reorder Lot
+          </button>
+</div>
+<div class="bg-surface-container-lowest/90 rounded-lg p-2.5 flex items-center justify-between">
+<div class="min-w-0 pr-2">
+<div class="font-label-md text-label-md text-on-surface truncate">Corozo Dark Brown Buttons 28L</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1.5 mt-0.5">
+<span class="text-error font-medium">12 pcs left</span>
+<span class="text-outline-variant">•</span>
+<span>Min safety: 50 pcs</span>
+</div>
+</div>
+<button class="px-2.5 py-1.5 rounded-lg bg-primary-container text-on-primary font-label-sm text-label-sm flex-shrink-0 active:scale-95 transition-transform" onclick="triggerLotReorder('Corozo Buttons 28L')">
+            Reorder Lot
+          </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Category Filter Pills -->
+<div class="pt-space-sm pb-space-xs">
+<div class="flex gap-1.5 overflow-x-auto px-margin no-scrollbar" id="category-pill-container">
+<button class="category-pill active h-8 px-3.5 rounded-full font-label-sm text-label-sm flex items-center gap-1 bg-primary-container text-on-primary transition-all flex-shrink-0" data-cat="all">
+<span>All</span>
+<span class="opacity-80 text-[10px]">148</span>
+</button>
+<button class="category-pill h-8 px-3 rounded-full font-label-sm text-label-sm flex items-center gap-1 bg-surface-container-lowest text-on-surface-variant hover:text-on-surface shadow-xs transition-all flex-shrink-0" data-cat="fabrics">
+<span>Fabrics &amp; Cloth</span>
+<span class="opacity-60 text-[10px]">42</span>
+</button>
+<button class="category-pill h-8 px-3 rounded-full font-label-sm text-label-sm flex items-center gap-1 bg-surface-container-lowest text-on-surface-variant hover:text-on-surface shadow-xs transition-all flex-shrink-0" data-cat="threads">
+<span>Thread &amp; Silk</span>
+<span class="opacity-60 text-[10px]">35</span>
+</button>
+<button class="category-pill h-8 px-3 rounded-full font-label-sm text-label-sm flex items-center gap-1 bg-surface-container-lowest text-on-surface-variant hover:text-on-surface shadow-xs transition-all flex-shrink-0" data-cat="buttons">
+<span>Buttons &amp; Horn</span>
+<span class="opacity-60 text-[10px]">28</span>
+</button>
+<button class="category-pill h-8 px-3 rounded-full font-label-sm text-label-sm flex items-center gap-1 bg-surface-container-lowest text-on-surface-variant hover:text-on-surface shadow-xs transition-all flex-shrink-0" data-cat="linings">
+<span>Linings &amp; Cupro</span>
+<span class="opacity-60 text-[10px]">19</span>
+</button>
+<button class="category-pill h-8 px-3 rounded-full font-label-sm text-label-sm flex items-center gap-1 bg-surface-container-lowest text-on-surface-variant hover:text-on-surface shadow-xs transition-all flex-shrink-0" data-cat="hardware">
+<span>Zippers &amp; Hardware</span>
+<span class="opacity-60 text-[10px]">14</span>
+</button>
+<button class="category-pill h-8 px-3 rounded-full font-label-sm text-label-sm flex items-center gap-1 bg-surface-container-lowest text-on-surface-variant hover:text-on-surface shadow-xs transition-all flex-shrink-0" data-cat="notions">
+<span>Canvassing &amp; Notions</span>
+<span class="opacity-60 text-[10px]">10</span>
+</button>
+</div>
+</div>
+<!-- Material List Section -->
+<div class="px-margin pt-space-xs flex flex-col gap-space-sm" id="material-list">
+<!-- Item 1: Scabal Super 150s (Wool Fabric) -->
+<div class="inventory-card bg-surface-container-lowest rounded-xl p-4 shadow-sm flex flex-col gap-3 transition-transform" data-category="fabrics" data-name="Scabal Super 150s Midnight Navy Herringbone SC-904">
+<div class="flex items-start justify-between gap-3">
+<div class="flex gap-3 min-w-0">
+<div class="w-14 h-14 rounded-lg bg-surface-container-low flex-shrink-0 overflow-hidden relative shadow-xs">
+<img class="w-full h-full object-cover" data-alt="Micro texture photograph of luxury Scabal super 150s midnight navy herringbone suiting wool fabric with subtle tailored weave under natural atelier raking light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCJK9QBT91hB3LOIlXm8YkU-Jf4XaKV5o9mmBB_oyVDosgzKou_yYmy52SWp8QaC3zDwO3Q4phutz6fmv1aF3lwxhps_7bC6prQervPtJXzH0zZDITntquRT-5-_RP3DmZMf618eoNEdISnd-Ty9vd4O4ZRfnSZ9xgY3ypWn3qPUZNl8fexNQhyMbVl2bLPTtNcpabCp6wfb_31ruZPoncTE1ZyTqUj9XP5QaFuS4I"/>
+<span class="absolute bottom-1 right-1 px-1 py-0.2 rounded bg-surface-container-highest/90 text-on-surface font-label-sm text-[9px] uppercase tracking-wider">Wool</span>
+</div>
+<div class="min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider truncate">Fabrics / Pure Wool</span>
+<span class="text-outline-variant">•</span>
+<span class="font-label-sm text-label-sm text-secondary font-medium truncate">Lot #SC-904</span>
+</div>
+<h2 class="font-title-sm text-title-sm text-on-surface tracking-tight mt-0.5 line-clamp-1">Scabal Super 150s Midnight Navy Herringbone</h2>
+<div class="flex items-center gap-2 mt-1">
+<span class="inline-flex items-center gap-1 font-body-sm text-body-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[14px]">shelves</span>
+                Rack B-04
+              </span>
+<span class="text-outline-variant">•</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant tabular-nums">$145.00 / m</span>
+</div>
+</div>
+</div>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-container-high text-on-tertiary-container font-label-sm text-label-sm flex-shrink-0">
+<span class="w-1.5 h-1.5 rounded-full bg-on-tertiary-container"></span>
+          In Stock
+        </span>
+</div>
+<!-- Meterage Progress & Allocation Split -->
+<div class="bg-surface-container-low/70 rounded-lg p-2.5 flex flex-col gap-2">
+<div class="flex items-baseline justify-between">
+<div class="flex items-baseline gap-1.5">
+<span class="font-metric-num text-metric-num text-on-surface">18.5m</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Total on Bolt</span>
+</div>
+<div class="flex items-center gap-2 text-right">
+<span class="font-label-md text-label-md text-secondary font-semibold">12.3m Available</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">(6.2m Allocated)</span>
+</div>
+</div>
+<!-- Meter bar breakdown -->
+<div class="w-full h-1.5 rounded-full bg-surface-container-highest overflow-hidden flex">
+<div class="bg-secondary h-full" style="width: 66.5%;" title="Available: 12.3m"></div>
+<div class="bg-primary-container h-full" style="width: 33.5%;" title="Allocated: 6.2m"></div>
+</div>
+<div class="flex items-center justify-between font-label-sm text-[11px] text-on-surface-variant pt-0.5">
+<span class="truncate">Reserved for Bespoke Job #024 &amp; #026</span>
+<span class="font-medium text-on-surface-variant/90 flex-shrink-0">Safety threshold: 5.0m</span>
+</div>
+</div>
+<!-- Card Action Strip -->
+<div class="flex items-center gap-2 pt-1">
+<button class="flex-1 h-9 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface font-label-sm text-label-sm flex items-center justify-center gap-1.5 transition-colors active:scale-98" onclick="openAllocationDrawer('Scabal Super 150s Navy', '12.3m')">
+<span class="material-symbols-outlined text-[16px]">content_cut</span>
+<span>Allocate to Job</span>
+</button>
+<button class="h-9 px-3 rounded-lg bg-surface-container-lowest hover:bg-surface-container text-on-surface font-label-sm text-label-sm flex items-center justify-center gap-1 shadow-xs transition-colors active:scale-98" onclick="quickAddStockPrompt('Scabal Super 150s Herringbone', 'meters')">
+<span class="material-symbols-outlined text-[16px]">add</span>
+<span>+ Stock</span>
+</button>
+</div>
+</div>
+<!-- Item 2: Gutermann Silk Basting Thread (Low Stock) -->
+<div class="inventory-card bg-surface-container-lowest rounded-xl p-4 shadow-sm flex flex-col gap-3 transition-transform" data-category="threads" data-name="Gutermann Silk Basting Thread Ecru White GT-402">
+<div class="flex items-start justify-between gap-3">
+<div class="flex gap-3 min-w-0">
+<div class="w-14 h-14 rounded-lg bg-surface-container-low flex-shrink-0 overflow-hidden relative shadow-xs">
+<img class="w-full h-full object-cover" data-alt="Macro close-up photograph of luxury wooden spools wrapped in fine ecru white basting silk thread on a tailor cutting table" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDZiOqf2DuKDSwAm9_BLqJEGzX0SDTcxBFuUAdVMmmmg8FldcFRrHL48bwIYi05yh3rRE2K4qTVYcmzjWIcjDFjeLNZMHKDEXIUPUGQg4StT_4IzxR0eim3zMNiD3PjF-tdIflDT6JPsgVoeVkjzGTraktBHC72XsPiyw7WFAWqiSr0yGpMGOxn8dU-kdKnBHSdyJM-Af3DnUcb2EaTbKYeyeGLdrRwocsC5iy1rg"/>
+<span class="absolute bottom-1 right-1 px-1 py-0.2 rounded bg-surface-container-highest/90 text-on-surface font-label-sm text-[9px] uppercase tracking-wider">Silk</span>
+</div>
+<div class="min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider truncate">Threads &amp; Silks</span>
+<span class="text-outline-variant">•</span>
+<span class="font-label-sm text-label-sm text-secondary font-medium truncate">Lot #GT-402</span>
+</div>
+<h2 class="font-title-sm text-title-sm text-on-surface tracking-tight mt-0.5 line-clamp-1">Gutermann Silk Basting Thread - Ecru/White</h2>
+<div class="flex items-center gap-2 mt-1">
+<span class="inline-flex items-center gap-1 font-body-sm text-body-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[14px]">archive</span>
+                Spool Box #01
+              </span>
+<span class="text-outline-variant">•</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">40wt Baste</span>
+</div>
+</div>
+</div>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-container-high text-secondary font-label-sm text-label-sm flex-shrink-0">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary-container"></span>
+          Low Stock
+        </span>
+</div>
+<!-- Quantity Indicator & Consumption Alert -->
+<div class="bg-surface-container-low/70 rounded-lg p-2.5 flex flex-col gap-1.5">
+<div class="flex items-baseline justify-between">
+<div class="flex items-baseline gap-1.5">
+<span class="font-metric-num text-metric-num text-on-surface">3 Spools</span>
+<span class="font-body-sm text-body-sm text-error font-medium">(Min: 10 spools)</span>
+</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant bg-surface-container-highest/60 px-2 py-0.5 rounded">
+            Used in 8 jobs this month
+          </div>
+</div>
+<div class="w-full h-1.5 rounded-full bg-surface-container-highest overflow-hidden">
+<div class="bg-secondary-container h-full rounded-full" style="width: 30%;"></div>
+</div>
+<div class="font-label-sm text-[11px] text-on-surface-variant">High frequency consumable in fitting &amp; canvas assembly</div>
+</div>
+<!-- Actions -->
+<div class="flex items-center gap-2 pt-1">
+<button class="flex-1 h-9 rounded-lg bg-primary-container text-on-primary font-label-sm text-label-sm flex items-center justify-center gap-1.5 transition-colors active:scale-98" onclick="triggerLotReorder('Gutermann Silk Basting Thread')">
+<span class="material-symbols-outlined text-[16px]">local_shipping</span>
+<span>Quick Reorder (10 pk)</span>
+</button>
+<button class="h-9 px-3 rounded-lg bg-surface-container-lowest hover:bg-surface-container text-on-surface font-label-sm text-label-sm flex items-center justify-center gap-1 shadow-xs transition-colors active:scale-98" onclick="quickAddStockPrompt('Silk Basting Thread', 'spools')">
+<span class="material-symbols-outlined text-[16px]">add</span>
+<span>+ Count</span>
+</button>
+</div>
+</div>
+<!-- Item 3: Bemberg 100% Cupro Burgundy Lining -->
+<div class="inventory-card bg-surface-container-lowest rounded-xl p-4 shadow-sm flex flex-col gap-3 transition-transform" data-category="linings" data-name="Bemberg 100% Cupro Burgundy Twill Lining BM-118">
+<div class="flex items-start justify-between gap-3">
+<div class="flex gap-3 min-w-0">
+<div class="w-14 h-14 rounded-lg bg-surface-container-low flex-shrink-0 overflow-hidden relative shadow-xs">
+<img class="w-full h-full object-cover" data-alt="Draped lustrous burgundy wine cupro silk twill lining fabric with soft fluid ripples and high sheen studio lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJJD1-edPMeMPe0treZZ3EPVUZDN80I4RLnFUGsFxtrz7ekQWkpO0VlSvWRVlU2PTvG4LDhRhoAHZSY7DbPZ8KY0OXF_9zSyOchvkwKsgp7k7IF7G34E5pZd2fwErc5Py5wKM_HDZJS5FPllncmXoxyLisTKVAGLgZbSg-skbYjXk3gR_jUC3W0ynn_QeYS-jYAFJHMYmMDuDRmgGKq1JE5f8LLrGzFgqHJVTbNno"/>
+<span class="absolute bottom-1 right-1 px-1 py-0.2 rounded bg-surface-container-highest/90 text-on-surface font-label-sm text-[9px] uppercase tracking-wider">Cupro</span>
+</div>
+<div class="min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider truncate">Linings &amp; Cupro</span>
+<span class="text-outline-variant">•</span>
+<span class="font-label-sm text-label-sm text-secondary font-medium truncate">Lot #BM-118</span>
+</div>
+<h2 class="font-title-sm text-title-sm text-on-surface tracking-tight mt-0.5 line-clamp-1">Bemberg 100% Cupro Burgundy Twill Lining</h2>
+<div class="flex items-center gap-2 mt-1">
+<span class="inline-flex items-center gap-1 font-body-sm text-body-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[14px]">shelves</span>
+                Rack C-02
+              </span>
+<span class="text-outline-variant">•</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant tabular-nums">$38.00 / m</span>
+</div>
+</div>
+</div>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-container-high text-on-tertiary-container font-label-sm text-label-sm flex-shrink-0">
+<span class="w-1.5 h-1.5 rounded-full bg-on-tertiary-container"></span>
+          In Stock
+        </span>
+</div>
+<div class="bg-surface-container-low/70 rounded-lg p-2.5 flex flex-col gap-2">
+<div class="flex items-baseline justify-between">
+<div class="flex items-baseline gap-1.5">
+<span class="font-metric-num text-metric-num text-on-surface">14.0m</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Total Remaining</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="font-label-md text-label-md text-secondary font-semibold">8.5m Available</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">(5.5m in Cut Queue)</span>
+</div>
+</div>
+<div class="w-full h-1.5 rounded-full bg-surface-container-highest overflow-hidden flex">
+<div class="bg-secondary h-full" style="width: 60.7%;"></div>
+<div class="bg-primary-container h-full" style="width: 39.3%;"></div>
+</div>
+<div class="flex items-center justify-between font-label-sm text-[11px] text-on-surface-variant">
+<span>Anti-static breathability standard</span>
+<span>Min threshold: 4.0m</span>
+</div>
+</div>
+<div class="flex items-center gap-2 pt-1">
+<button class="flex-1 h-9 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface font-label-sm text-label-sm flex items-center justify-center gap-1.5 transition-colors active:scale-98" onclick="openAllocationDrawer('Bemberg Cupro Burgundy', '8.5m')">
+<span class="material-symbols-outlined text-[16px]">content_cut</span>
+<span>Allocate to Job</span>
+</button>
+<button class="h-9 px-3 rounded-lg bg-surface-container-lowest hover:bg-surface-container text-on-surface font-label-sm text-label-sm flex items-center justify-center gap-1 shadow-xs transition-colors active:scale-98" onclick="quickAddStockPrompt('Bemberg Cupro Twill', 'meters')">
+<span class="material-symbols-outlined text-[16px]">add</span>
+<span>+ Stock</span>
+</button>
+</div>
+</div>
+<!-- Item 4: Natural Water Buffalo Horn Buttons -->
+<div class="inventory-card bg-surface-container-lowest rounded-xl p-4 shadow-sm flex flex-col gap-3 transition-transform" data-category="buttons" data-name="Natural Water Buffalo Horn Buttons Smoked Honey HBN-88">
+<div class="flex items-start justify-between gap-3">
+<div class="flex gap-3 min-w-0">
+<div class="w-14 h-14 rounded-lg bg-surface-container-low flex-shrink-0 overflow-hidden relative shadow-xs">
+<img class="w-full h-full object-cover" data-alt="Handcrafted smoked honey water buffalo horn suit buttons with matte striated grain arranged neatly on dark slate tailor bench" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBwBPhIod8xwJxVK8hNjjFuu8PvvgLsAPAL5BR9cO3Gfkgqd9w5LAdsOm2bdLGSCVIS_nbeoy4L5uwKShFnDVk6rDgGyZcKpzry547LaP75kJ4LaEHYafBebB_mTs-jO9bRPM09bxBgcIqxn13IHLGJPy8k0g0mb4euksJ8J4B842TKZX7nrwxoFjY-g3K1MjQomgd_AQhc3t5sf_zlCU1XmaRde6gXY0IlA5gl4JY"/>
+<span class="absolute bottom-1 right-1 px-1 py-0.2 rounded bg-surface-container-highest/90 text-on-surface font-label-sm text-[9px] uppercase tracking-wider">Horn</span>
+</div>
+<div class="min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider truncate">Buttons &amp; Trims</span>
+<span class="text-outline-variant">•</span>
+<span class="font-label-sm text-label-sm text-secondary font-medium truncate">Lot #HBN-88</span>
+</div>
+<h2 class="font-title-sm text-title-sm text-on-surface tracking-tight mt-0.5 line-clamp-1">Natural Water Buffalo Horn Buttons (Smoked Honey)</h2>
+<div class="flex items-center gap-2 mt-1">
+<span class="inline-flex items-center gap-1 font-body-sm text-body-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[14px]">grid_view</span>
+                Drawer A-12
+              </span>
+<span class="text-outline-variant">•</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Italian Turned</span>
+</div>
+</div>
+</div>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-container-high text-on-tertiary-container font-label-sm text-label-sm flex-shrink-0">
+<span class="w-1.5 h-1.5 rounded-full bg-on-tertiary-container"></span>
+          Healthy
+        </span>
+</div>
+<div class="bg-surface-container-low/70 rounded-lg p-2.5 flex items-center justify-between">
+<div>
+<div class="flex items-baseline gap-1.5">
+<span class="font-metric-num text-metric-num text-on-surface">6 Full Sets</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Suits</span>
+</div>
+<div class="font-label-sm text-[11px] text-on-surface-variant mt-0.5">24 Front (32L) + 32 Sleeve (24L) pcs</div>
+</div>
+<div class="text-right">
+<div class="font-title-sm text-title-sm text-on-surface">$28.00 / set</div>
+<span class="font-label-sm text-[11px] text-on-surface-variant">Min stock: 2 Sets</span>
+</div>
+</div>
+<div class="flex items-center gap-2 pt-1">
+<button class="flex-1 h-9 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface font-label-sm text-label-sm flex items-center justify-center gap-1.5 transition-colors active:scale-98" onclick="openAllocationDrawer('Buffalo Horn Buttons (Smoked Honey)', '6 Sets')">
+<span class="material-symbols-outlined text-[16px]">touch_app</span>
+<span>Assign to Jacket</span>
+</button>
+<button class="h-9 px-3 rounded-lg bg-surface-container-lowest hover:bg-surface-container text-on-surface font-label-sm text-label-sm flex items-center justify-center gap-1 shadow-xs transition-colors active:scale-98" onclick="quickAddStockPrompt('Horn Buttons Smoked Honey', 'sets')">
+<span class="material-symbols-outlined text-[16px]">add</span>
+<span>+ Set</span>
+</button>
+</div>
+</div>
+<!-- Item 5: Savile Row Horsehair Canvas Interlining (Out of Stock / Critical) -->
+<div class="inventory-card bg-surface-container-lowest rounded-xl p-4 shadow-sm flex flex-col gap-3 transition-transform" data-category="notions" data-name="Savile Row Horsehair Canvas Interlining HC-301">
+<div class="flex items-start justify-between gap-3">
+<div class="flex gap-3 min-w-0">
+<div class="w-14 h-14 rounded-lg bg-surface-container-low flex-shrink-0 overflow-hidden relative shadow-xs">
+<img class="w-full h-full object-cover" data-alt="Natural structured woven horsehair chest canvas fabric with traditional stiff tailoring body texture close up in artisan cutter workshop" src="https://lh3.googleusercontent.com/aida-public/AB6AXuArTiTsd30OzimiJe8xcia0BNg9gfTbWNRKSMP2JpInYgBhXwpfTreRKZIqvodQp2IyiO7MfBe9BuRg4K3tncPEPFFPKoC2htOuwJPqpKXganH7kkJ4KtxPD5BDfeF36ePZHSM_Gz6RvUKaskWMuQBBjXe1LyOAYSnXzREDyrywA29rm7mlXFXvlMgBJbL4ZCxT7IJRHjOOyAT2koYqIkg9D3_HoEbkY2NnNjH-4mQ"/>
+<span class="absolute bottom-1 right-1 px-1 py-0.2 rounded bg-surface-container-highest/90 text-on-surface font-label-sm text-[9px] uppercase tracking-wider">Canvas</span>
+</div>
+<div class="min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider truncate">Canvassing &amp; Structure</span>
+<span class="text-outline-variant">•</span>
+<span class="font-label-sm text-label-sm text-secondary font-medium truncate">Lot #HC-301</span>
+</div>
+<h2 class="font-title-sm text-title-sm text-on-surface tracking-tight mt-0.5 line-clamp-1">Savile Row Horsehair Canvas Interlining</h2>
+<div class="flex items-center gap-2 mt-1">
+<span class="inline-flex items-center gap-1 font-body-sm text-body-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[14px]">inventory</span>
+                Roll Bin 03
+              </span>
+<span class="text-outline-variant">•</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Medium Weight 240g</span>
+</div>
+</div>
+</div>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm flex-shrink-0">
+<span class="w-1.5 h-1.5 rounded-full bg-error"></span>
+          Depleted
+        </span>
+</div>
+<div class="bg-error-container/20 rounded-lg p-2.5 flex flex-col gap-1.5">
+<div class="flex items-baseline justify-between">
+<div class="flex items-baseline gap-1.5">
+<span class="font-metric-num text-metric-num text-error">0.8m</span>
+<span class="font-body-sm text-body-sm text-error font-medium">(Critically Low • Min: 5.0m)</span>
+</div>
+<span class="font-label-sm text-label-sm text-error font-semibold uppercase tracking-wider">Insufficient</span>
+</div>
+<div class="w-full h-1.5 rounded-full bg-surface-container-highest overflow-hidden">
+<div class="bg-error h-full rounded-full" style="width: 16%;"></div>
+</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">Full bespoke jacket canvas builds on hold until replenished.</div>
+</div>
+<div class="flex items-center gap-2 pt-1">
+<button class="flex-1 h-9 rounded-lg bg-primary text-on-primary font-label-sm text-label-sm flex items-center justify-center gap-1.5 transition-transform active:scale-98 shadow-xs" onclick="triggerLotReorder('Savile Row Horsehair Canvas')">
+<span class="material-symbols-outlined text-[16px]">priority_high</span>
+<span>Order Emergency Bolt (25m)</span>
+</button>
+<button class="h-9 px-3 rounded-lg bg-surface-container-lowest hover:bg-surface-container text-on-surface font-label-sm text-label-sm flex items-center justify-center gap-1 shadow-xs transition-colors active:scale-98" onclick="quickAddStockPrompt('Horsehair Canvas', 'meters')">
+<span class="material-symbols-outlined text-[16px]">add</span>
+<span>Receive</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Empty State when filtering or searching -->
+<div class="hidden px-margin py-12 flex-col items-center justify-center text-center" id="no-inventory-state">
+<div class="w-14 h-14 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant mb-3">
+<span class="material-symbols-outlined text-[28px]">search_off</span>
+</div>
+<div class="font-headline-md text-headline-md text-on-surface">No Atelier Materials Found</div>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1 max-w-xs">
+      Try searching a different lot identifier, cloth weave name, or switch category filters.
+    </p>
+<button class="mt-4 px-4 py-2 bg-surface-container-lowest text-on-surface font-label-md text-label-md rounded-xl shadow-xs" id="reset-filter-btn">
+      Reset Filters
+    </button>
+</div>
+<!-- Atelier Swatch Quick Add / QR Overlay Modal Sheet -->
+<div class="fixed inset-0 z-50 bg-inverse-surface/40 backdrop-blur-xs flex flex-col justify-end hidden opacity-0 transition-opacity duration-200" id="quick-action-drawer">
+<div class="bg-surface-container-lowest w-full rounded-t-2xl shadow-xl p-5 flex flex-col gap-4 max-h-[85vh] overflow-y-auto">
+<div class="w-10 h-1 bg-surface-variant rounded-full mx-auto"></div>
+<div class="flex items-center justify-between">
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Atelier Operations</span>
+<h2 class="font-headline-md text-headline-md text-on-surface" id="drawer-title">Allocate Material to Job</h2>
+</div>
+<button class="w-8 h-8 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface-variant hover:text-on-surface" id="close-drawer-btn">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+<div class="flex flex-col gap-3 py-1" id="drawer-content-body">
+<!-- Injected dynamically via JS -->
+</div>
+</div>
+</div>
+<!-- Bottom Floating Context Bar for Atelier Cutters -->
+<div class="fixed bottom-20 left-0 right-0 px-margin pointer-events-none flex justify-center z-40">
+<div class="pointer-events-auto bg-primary-container/95 backdrop-blur-md text-on-primary px-4 py-2.5 rounded-full shadow-lg flex items-center gap-3 border-none">
+<div class="flex items-center gap-1.5 text-secondary-fixed">
+<span class="material-symbols-outlined text-[18px]">straighten</span>
+<span class="font-label-sm text-label-sm uppercase tracking-wide">Bench Mode</span>
+</div>
+<div class="h-3 w-px bg-on-primary/20"></div>
+<button class="flex items-center gap-1 hover:text-secondary-fixed transition-colors" onclick="openScannerSimulator()">
+<span class="material-symbols-outlined text-[17px]">barcode_scanner</span>
+<span class="font-label-md text-label-md">Scan Bolt Swatch</span>
+</button>
+</div>
+</div>
+<!-- Interactive Toast Notification -->
+<div class="fixed top-20 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 transition-all duration-300 transform -translate-y-2" id="toast-notify">
+<div class="bg-inverse-surface text-inverse-on-surface px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2 font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-[18px] text-tertiary-fixed-dim" id="toast-icon">check_circle</span>
+<span id="toast-message">Stock updated successfully.</span>
+</div>
+</div>
+</div>
+<script>
+  // Filter pill state & real-time search handling
+  const searchInput = document.getElementById('inventory-search');
+  const clearBtn = document.getElementById('clear-search-btn');
+  const categoryPills = document.querySelectorAll('.category-pill');
+  const cards = document.querySelectorAll('.inventory-card');
+  const emptyState = document.getElementById('no-inventory-state');
+  const resetBtn = document.getElementById('reset-filter-btn');
+
+  let activeCategory = 'all';
+
+  function filterInventory() {
+    const query = searchInput.value.trim().toLowerCase();
+    let visibleCount = 0;
+
+    cards.forEach(card => {
+      const cardCategory = card.getAttribute('data-category');
+      const cardName = card.getAttribute('data-name').toLowerCase();
+      
+      const matchesCategory = (activeCategory === 'all' || cardCategory === activeCategory);
+      const matchesSearch = query === '' || cardName.includes(query);
+
+      if (matchesCategory && matchesSearch) {
+        card.classList.remove('hidden');
+        visibleCount++;
+      } else {
+        card.classList.add('hidden');
+      }
+    });
+
+    if (visibleCount === 0) {
+      emptyState.classList.remove('hidden');
+      emptyState.classList.add('flex');
+    } else {
+      emptyState.classList.add('hidden');
+      emptyState.classList.remove('flex');
+    }
+  }
+
+  categoryPills.forEach(pill => {
+    pill.addEventListener('click', () => {
+      categoryPills.forEach(p => {
+        p.classList.remove('bg-primary-container', 'text-on-primary');
+        p.classList.add('bg-surface-container-lowest', 'text-on-surface-variant');
+      });
+      pill.classList.remove('bg-surface-container-lowest', 'text-on-surface-variant');
+      pill.classList.add('bg-primary-container', 'text-on-primary');
+      
+      activeCategory = pill.getAttribute('data-cat');
+      filterInventory();
+    });
+  });
+
+  searchInput.addEventListener('input', () => {
+    if (searchInput.value.length > 0) {
+      clearBtn.classList.remove('hidden');
+      clearBtn.classList.add('flex');
+    } else {
+      clearBtn.classList.add('hidden');
+      clearBtn.classList.remove('flex');
+    }
+    filterInventory();
+  });
+
+  clearBtn.addEventListener('click', () => {
+    searchInput.value = '';
+    clearBtn.classList.add('hidden');
+    clearBtn.classList.remove('flex');
+    filterInventory();
+    searchInput.focus();
+  });
+
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+      searchInput.value = '';
+      clearBtn.classList.add('hidden');
+      categoryPills[0].click();
+    });
+  }
+
+  // Drawer / Modal Sheet Controls
+  const drawer = document.getElementById('quick-action-drawer');
+  const drawerTitle = document.getElementById('drawer-title');
+  const drawerBody = document.getElementById('drawer-content-body');
+  const closeDrawerBtn = document.getElementById('close-drawer-btn');
+
+  function openDrawer(title, htmlContent) {
+    drawerTitle.innerText = title;
+    drawerBody.innerHTML = htmlContent;
+    drawer.classList.remove('hidden');
+    setTimeout(() => {
+      drawer.classList.remove('opacity-0');
+    }, 10);
+  }
+
+  function closeDrawer() {
+    drawer.classList.add('opacity-0');
+    setTimeout(() => {
+      drawer.classList.add('hidden');
+    }, 200);
+  }
+
+  closeDrawerBtn.addEventListener('click', closeDrawer);
+  drawer.addEventListener('click', (e) => {
+    if (e.target === drawer) closeDrawer();
+  });
+
+  // Action Simulation Handlers
+  window.triggerLotReorder = function(itemName) {
+    showToast(`Purchase order generated for ${itemName}`, 'local_shipping');
+  };
+
+  window.openAllocationDrawer = function(itemName, available) {
+    const html = `
+      <div class="bg-surface-container-low rounded-xl p-3 flex justify-between items-center">
+        <div>
+          <span class="font-label-sm text-label-sm text-on-surface-variant">Material</span>
+          <div class="font-title-sm text-title-sm text-on-surface">${itemName}</div>
+        </div>
+        <div class="text-right">
+          <span class="font-label-sm text-label-sm text-on-surface-variant">Available</span>
+          <div class="font-metric-num text-metric-num text-secondary">${available}</div>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-1.5 mt-2">
+        <label class="font-label-md text-label-md text-on-surface">Target Client Bespoke Job</label>
+        <select class="w-full bg-surface-container-low p-3 rounded-xl font-body-md text-body-md text-on-surface outline-none">
+          <option>#JOB-028 - Lord Alistair (Double Breasted Navy Overcoat)</option>
+          <option>#JOB-031 - Julian Vance (3-Piece Savile Bespoke Suit)</option>
+          <option>#JOB-033 - Sterling Croft (Dinner Jacket Silk Trim)</option>
+        </select>
+      </div>
+
+      <div class="flex flex-col gap-1.5 mt-1">
+        <label class="font-label-md text-label-md text-on-surface">Quantity to Deduct &amp; Reserve</label>
+        <div class="flex items-center gap-2">
+          <input type="number" step="0.1" value="3.4" class="flex-1 bg-surface-container-low p-3 rounded-xl font-metric-num text-metric-num text-on-surface outline-none" />
+          <span class="font-body-md text-body-md text-on-surface-variant font-medium pr-2">Meters</span>
+        </div>
+      </div>
+
+      <button onclick="confirmAllocation('${itemName}')" class="w-full mt-3 py-3 rounded-xl bg-primary text-on-primary font-label-md text-label-md flex items-center justify-center gap-2 active:scale-98">
+        <span class="material-symbols-outlined text-[18px]">verified</span>
+        <span>Confirm Allocation &amp; Print Cutting Tag</span>
+      </button>
+    `;
+    openDrawer('Allocate Cloth to Order', html);
+  };
+
+  window.confirmAllocation = function(itemName) {
+    closeDrawer();
+    showToast(`Allocated 3.4m of ${itemName} to Job #JOB-028`, 'check_circle');
+  };
+
+  window.quickAddStockPrompt = function(itemName, unit) {
+    const html = `
+      <div class="flex flex-col gap-1.5">
+        <span class="font-body-sm text-body-sm text-on-surface-variant">Receiving new bolt shipment for</span>
+        <div class="font-title-sm text-title-sm text-on-surface">${itemName}</div>
+      </div>
+
+      <div class="flex flex-col gap-1 mt-2">
+        <label class="font-label-md text-label-md text-on-surface">Received Quantity (${unit})</label>
+        <input type="number" value="5.0" class="w-full bg-surface-container-low p-3 rounded-xl font-metric-num text-metric-num text-on-surface outline-none" />
+      </div>
+
+      <div class="flex flex-col gap-1 mt-1">
+        <label class="font-label-md text-label-md text-on-surface">Mill Bolt Invoice / Lot Ref</label>
+        <input type="text" placeholder="e.g. DORM-2024-B9" class="w-full bg-surface-container-low p-3 rounded-xl font-body-md text-body-md text-on-surface outline-none" />
+      </div>
+
+      <button onclick="confirmStockAdd('${itemName}')" class="w-full mt-3 py-3 rounded-xl bg-primary text-on-primary font-label-md text-label-md flex items-center justify-center gap-2 active:scale-98">
+        <span class="material-symbols-outlined text-[18px]">add_box</span>
+        <span>Commit to Atelier Vault</span>
+      </button>
+    `;
+    openDrawer('Receive Material Stock', html);
+  };
+
+  window.confirmStockAdd = function(itemName) {
+    closeDrawer();
+    showToast(`Inventory updated for ${itemName}`, 'inventory');
+  };
+
+  window.openScannerSimulator = function() {
+    showToast('Optical scanner activated. Point at QR swatch ticket.', 'qr_code_scanner');
+  };
+
+  document.getElementById('btn-scan-qr')?.addEventListener('click', openScannerSimulator);
+
+  document.getElementById('btn-add-material')?.addEventListener('click', () => {
+    quickAddStockPrompt('New Atelier Material', 'units');
+  });
+
+  function showToast(msg, iconName = 'check_circle') {
+    const toast = document.getElementById('toast-notify');
+    const toastMsg = document.getElementById('toast-message');
+    const toastIcon = document.getElementById('toast-icon');
+    
+    toastMsg.innerText = msg;
+    toastIcon.innerText = iconName;
+
+    toast.classList.remove('opacity-0', '-translate-y-2');
+    toast.classList.add('opacity-100', 'translate-y-0');
+
+    setTimeout(() => {
+      toast.classList.remove('opacity-100', 'translate-y-0');
+      toast.classList.add('opacity-0', '-translate-y-2');
+    }, 2800);
+  }
+</script></main><nav class="fixed bottom-0 w-full z-50 pb-safe bg-surface/90 backdrop-blur-xl shadow-[0_-4px_20px_rgba(15,27,46,0.06)]" data-active-classes="text-primary-container font-semibold [&amp;_span.material-symbols-outlined]:text-primary-container [&amp;_.nav-indicator]:opacity-100"><div class="h-16 px-space-xs grid grid-cols-5 items-stretch"><a class="group relative flex flex-col items-center justify-center min-h-[44px] py-1 text-on-surface-variant hover:text-on-surface transition-colors" data-path="dashboard" href="#"><span class="nav-indicator absolute top-1.5 w-6 h-0.5 rounded-full bg-primary-container opacity-0 transition-opacity"></span><span class="material-symbols-outlined text-[22px] transition-transform group-active:scale-95">grid_view</span><span class="font-label-sm text-label-sm mt-0.5 tracking-tight">Dashboard</span></a><a class="group relative flex flex-col items-center justify-center min-h-[44px] py-1 text-on-surface-variant hover:text-on-surface transition-colors" data-path="jobs" href="#"><span class="nav-indicator absolute top-1.5 w-6 h-0.5 rounded-full bg-primary-container opacity-0 transition-opacity"></span><span class="material-symbols-outlined text-[22px] transition-transform group-active:scale-95">content_cut</span><span class="font-label-sm text-label-sm mt-0.5 tracking-tight">Jobs</span></a><a class="group relative flex flex-col items-center justify-center min-h-[44px] py-1 text-on-surface-variant hover:text-on-surface transition-colors" data-path="calendar" href="#"><span class="nav-indicator absolute top-1.5 w-6 h-0.5 rounded-full bg-primary-container opacity-0 transition-opacity"></span><span class="material-symbols-outlined text-[22px] transition-transform group-active:scale-95">calendar_month</span><span class="font-label-sm text-label-sm mt-0.5 tracking-tight">Calendar</span></a><a class="group relative flex flex-col items-center justify-center min-h-[44px] py-1 text-on-surface-variant hover:text-on-surface transition-colors" data-path="customers" href="#"><span class="nav-indicator absolute top-1.5 w-6 h-0.5 rounded-full bg-primary-container opacity-0 transition-opacity"></span><span class="material-symbols-outlined text-[22px] transition-transform group-active:scale-95">contacts</span><span class="font-label-sm text-label-sm mt-0.5 tracking-tight">Customers</span></a><a class="group relative flex flex-col items-center justify-center min-h-[44px] py-1 text-on-surface-variant hover:text-on-surface transition-colors" data-path="more-menu" href="#"><span class="nav-indicator absolute top-1.5 w-6 h-0.5 rounded-full bg-primary-container opacity-0 transition-opacity"></span><span class="material-symbols-outlined text-[22px] transition-transform group-active:scale-95">widgets</span><span class="font-label-sm text-label-sm mt-0.5 tracking-tight">More</span></a></div></nav></body></html>

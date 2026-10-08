@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+
+<html class="h-full" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_stack" name="shell-type"/><title>SartorOS Bespoke</title><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "on-surface": "#111c2d", "on-tertiary-fixed": "#002113", "surface-dim": "#cfdaf2", "on-surface-variant": "#45474c", "on-secondary-container": "#fefcff", "surface-bright": "#f9f9ff", "surface-container-high": "#dee8ff", "inverse-surface": "#263143", "on-tertiary-container": "#009668", "secondary-container": "#316bf3", "surface-container-lowest": "#ffffff", "secondary-fixed-dim": "#b4c5ff", "on-background": "#111c2d", "on-primary": "#ffffff", "on-tertiary": "#ffffff", "on-secondary-fixed-variant": "#003ea8", "inverse-primary": "#bbc7e0", "secondary-fixed": "#dbe1ff", "surface-container": "#e7eeff", "primary-fixed-dim": "#bbc7e0", "surface": "#f9f9ff", "on-primary-fixed-variant": "#3c475c", "on-primary-container": "#78849c", "surface-container-highest": "#d8e3fb", "on-primary-fixed": "#101c2f", "inverse-on-surface": "#ecf1ff", "primary": "#000000", "on-error": "#ffffff", "tertiary-fixed": "#6ffbbe", "secondary": "#0051d5", "on-secondary-fixed": "#00174b", "outline-variant": "#c5c6cd", "tertiary": "#000000", "surface-container-low": "#f0f3ff", "error": "#ba1a1a", "surface-variant": "#d8e3fb", "on-tertiary-fixed-variant": "#005236", "on-secondary": "#ffffff", "primary-container": "#101c2f", "primary-fixed": "#d7e3fd", "error-container": "#ffdad6", "surface-tint": "#535f75", "background": "#f9f9ff", "outline": "#75777d", "tertiary-container": "#002113", "on-error-container": "#93000a", "tertiary-fixed-dim": "#4edea3" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "space-md": "0.75rem", "margin-tablet": "1.5rem", "space-xl": "1.5rem", "space-sm": "0.5rem", "space-xs": "0.25rem", "space-lg": "1rem", "gutter": "0.75rem", "gutter-tablet": "1rem", "margin": "1rem" }, "fontFamily": { "display-lg-mobile": ["Plus Jakarta Sans"], "label-sm": ["Plus Jakarta Sans"], "body-md": ["Plus Jakarta Sans"], "headline-md": ["Plus Jakarta Sans"], "body-sm": ["Plus Jakarta Sans"], "title-sm": ["Plus Jakarta Sans"], "headline-lg": ["Plus Jakarta Sans"], "metric-num": ["Plus Jakarta Sans"], "body-lg": ["Plus Jakarta Sans"], "label-md": ["Plus Jakarta Sans"], "display-lg": ["Plus Jakarta Sans"] }, "fontSize": { "display-lg-mobile": ["26px", { "lineHeight": "34px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "600" }], "body-md": ["13px", { "lineHeight": "18px", "fontWeight": "400" }], "headline-md": ["18px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }], "title-sm": ["15px", { "lineHeight": "20px", "fontWeight": "600" }], "headline-lg": ["22px", { "lineHeight": "28px", "letterSpacing": "-0.015em", "fontWeight": "600" }], "metric-num": ["20px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "700" }], "body-lg": ["15px", { "lineHeight": "22px", "fontWeight": "400" }], "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600" }], "display-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }] } } } }</script><style>@layer base{html,body{width:100vw;margin:0;padding:0;min-height:100%;}body{overscroll-behavior-y:none;-webkit-tap-highlight-color:transparent;min-height:max(884px,100dvh);}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}}::-webkit-scrollbar{display:none;}</style></head><body class="bg-surface text-on-surface antialiased flex flex-col min-h-screen selection:bg-secondary-fixed"><header class="fixed top-0 w-full z-50 pt-safe bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 px-margin flex items-center justify-between gap-space-sm"><div class="flex items-center gap-space-sm min-w-0"><button aria-label="Back" class="w-11 h-11 flex items-center justify-center rounded-full text-on-surface hover:bg-surface-container active:scale-95 transition-all -ml-2" onclick="history.back()" type="button"><span class="material-symbols-outlined text-[22px]">arrow_back</span></button><img alt="SartorOS Monogram Logo" class="h-8 w-auto object-contain flex-shrink-0 hidden sm:block" src="https://lh3.googleusercontent.com/aida/AEtjO1UaXdcaeMhgZdDbd94C0vU9bFZ5ffBtJ-c_C14-VrfYhUZz77I65929LjcS_aUOg72MZxkwMO-hI-IcGHNMT5TJVZF-9C6M2BhRsqYdJE1QChw3jq7tZ0CxFVhYaKMhqwGxo-g8NmqrTn-muqXYkPZ2M5JuZpUo4wnoGnysUQqYQyQJE8XiidJuABw8Nlm_-SBb9L-Gby0o6w3YZe2xwG4SlzkSYOSwTx7uwSBaVnlB"/><div class="flex flex-col min-w-0"><span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider truncate">SartorOS Bespoke</span><h1 class="font-title-sm text-title-sm text-on-surface tracking-tight truncate">Sartor Ai Business Assistant</h1></div></div><div class="flex items-center gap-space-xs flex-shrink-0"><button aria-label="Notifications" class="relative w-11 h-11 flex items-center justify-center rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" type="button"><span class="material-symbols-outlined text-[22px]">notifications</span><span class="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-secondary ring-2 ring-surface"></span></button><div class="flex items-center pl-space-xs"><img alt="Profile" class="w-8 h-8 rounded-full object-cover ring-1 ring-surface-container-high" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAESmiSUn-R2d4OMA-QraQjXL6w8KmACl5Ovo-3oirDD4dMvZFbYw1VQN0jFyLmDtvzh7zzgaR5gw99_GfVdAmAIOo0aLTKvHfjLwes-lbLD2KI0aRArJNQXb8Ekw0b6qsa-XvmiuLXRTIxVWioAehlZE2BAFGFQXkBCgO9IuJbRPoUCUOh5tVuS_15L7LhOy2_9POoi5YpoNkqOG_IWw5RA19zXx2Ww1mrGD5TUTY"/></div></div></div></header><main class="flex-1 w-full bg-surface pt-16 pb-safe"><div class="flex flex-col w-full pb-8">
+<!-- Atelier Copilot Ambient Header Banner -->
+<section class="px-margin pt-space-md pb-space-lg">
+<div class="bg-primary-container text-on-primary rounded-xl p-space-lg relative overflow-hidden shadow-md">
+<!-- Ambient Decorative Geometry -->
+<div class="absolute -right-8 -top-8 w-36 h-36 rounded-full bg-secondary-container/20 blur-2xl pointer-events-none"></div>
+<div class="absolute right-3 bottom-3 opacity-10 text-on-primary pointer-events-none">
+<svg fill="none" height="74" stroke="currentColor" stroke-width="1.2" viewbox="0 0 24 24" width="74">
+<circle cx="6" cy="6" r="3"></circle>
+<circle cx="6" cy="18" r="3"></circle>
+<line x1="20" x2="8.12" y1="4" y2="15.88"></line>
+<line x1="14.47" x2="20" y1="14.48" y2="20"></line>
+<line x1="8.12" x2="12" y1="8.12" y2="12"></line>
+</svg>
+</div>
+<!-- Live Engine Badge -->
+<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container-lowest/10 backdrop-blur-md mb-space-sm">
+<span class="w-2 h-2 rounded-full bg-tertiary-fixed-dim animate-pulse"></span>
+<span class="font-label-sm text-label-sm text-tertiary-fixed tracking-wide uppercase">Real-time Atelier Copilot • Active</span>
+</div>
+<!-- Title & Context -->
+<h2 class="font-headline-lg text-headline-lg tracking-tight text-on-primary mb-1">
+        Sartor AI Business Assistant
+      </h2>
+<p class="font-body-md text-body-md text-primary-fixed-dim leading-relaxed max-w-[92%]">
+        Trained on 142 Savile Row commissions, atelier pace &amp; fabric drape models.
+      </p>
+<!-- Tailor Telemetry Micro Bar -->
+<div class="mt-space-md pt-space-sm flex items-center justify-between gap-space-sm">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-secondary-fixed">model_training</span>
+<span class="font-label-sm text-label-sm text-primary-fixed">Engine v4.2 Bespoke</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px] text-tertiary-fixed">tune</span>
+<span class="font-label-sm text-label-sm text-surface-container-highest">Savile Row Bench Calibrated</span>
+</div>
+</div>
+</div>
+</section>
+<!-- High-Impact Proactive Insights Rail -->
+<section class="px-margin mb-space-xl">
+<div class="flex items-center justify-between mb-space-sm">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px] text-secondary">auto_awesome</span>
+<h3 class="font-title-sm text-title-sm text-on-surface">Proactive Atelier Directives</h3>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-full">4 Fresh</span>
+</div>
+<div class="flex flex-col gap-space-md">
+<!-- Card 1: Priority Production Recommendation -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm">
+<div class="flex items-start justify-between gap-space-sm mb-space-xs">
+<div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+            High Impact Priority
+          </div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Scheduled Thursday</span>
+</div>
+<h4 class="font-headline-md text-headline-md text-on-surface mb-1">
+          Schedule Optimization for Thursday
+        </h4>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed mb-space-md">
+          Complete Job #024 (<span class="font-medium text-on-surface">Kofi Mensah</span>) cutting before initiating Job #027 (<span class="font-medium text-on-surface">Kwame Asante</span>). Kofi has an advance forward fitting on Oct 18, and Super 150s drape relaxes 12 hours after initial shear.
+        </p>
+<!-- Dynamic Fabric Relax Timeline Pill -->
+<div class="bg-surface-container-low rounded-lg p-space-sm mb-space-md flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-secondary">hourglass_top</span>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface">Drape Relaxation Buffer</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Optimal chalking window: 08:30 AM</span>
+</div>
+</div>
+<span class="font-metric-num text-metric-num text-secondary">12h</span>
+</div>
+<div class="flex items-center gap-space-sm">
+<button class="flex-1 h-10 px-space-md rounded-lg bg-primary text-on-primary font-label-md text-label-md flex items-center justify-center gap-1.5 active:scale-[0.98] transition-transform" type="button">
+<span class="material-symbols-outlined text-[16px]">event_repeat</span>
+            Apply Auto-Schedule
+          </button>
+<button class="h-10 px-space-md rounded-lg bg-surface-container text-on-surface-variant font-label-md text-label-md hover:text-on-surface active:scale-[0.98] transition-transform" type="button">
+            Dismiss
+          </button>
+</div>
+</div>
+<!-- Card 2: Time & Labor Prediction Accuracy -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm">
+<div class="flex items-center justify-between mb-space-sm">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px] text-on-tertiary-container">speed</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Labor Precision Model</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-tertiary-container bg-tertiary-fixed/30 px-2 py-0.5 rounded-full font-semibold">+2.5h Free</span>
+</div>
+<div class="flex items-baseline gap-2 mb-1">
+<span class="font-metric-num text-metric-num text-on-surface">94.2%</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Estimation Accuracy across 38 Suits</span>
+</div>
+<!-- Mini Progress Visual -->
+<div class="w-full bg-surface-container h-1.5 rounded-full overflow-hidden my-2">
+<div class="bg-primary h-full rounded-full" style="width: 94.2%"></div>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+          Your hand pad-stitching is tracking <strong class="text-on-surface font-semibold">18 minutes faster</strong> than baseline. Projected weekly capacity increased by <span class="text-on-tertiary-container font-semibold">+2.5 hours</span>.
+        </p>
+</div>
+<!-- Card 3: Revenue & Capacity Forecast -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm">
+<div class="flex items-center justify-between mb-space-sm">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px] text-secondary">trending_up</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Capacity &amp; Pipeline</span>
+</div>
+<span class="font-label-sm text-label-sm bg-surface-container text-on-surface px-2 py-0.5 rounded-full font-semibold">Optimal Load</span>
+</div>
+<div class="grid grid-cols-2 gap-space-sm mb-space-sm">
+<div class="bg-surface-container-low rounded-lg p-space-sm">
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Projected Oct Pipeline</span>
+<span class="font-metric-num text-metric-num text-on-surface tracking-tight">$16,400</span>
+</div>
+<div class="bg-surface-container-low rounded-lg p-space-sm">
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Capacity Utilization</span>
+<div class="flex items-baseline gap-1">
+<span class="font-metric-num text-metric-num text-secondary">84%</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">/ 100%</span>
+</div>
+</div>
+</div>
+<div class="flex items-start gap-2 bg-surface-container-low/60 rounded-lg p-2.5">
+<span class="material-symbols-outlined text-[18px] text-secondary flex-shrink-0 mt-0.5">add_task</span>
+<p class="font-body-sm text-body-sm text-on-surface leading-snug">
+            Safe to accept <strong class="font-semibold text-secondary">1 additional bespoke 2-piece commission</strong> for November delivery without overtime.
+          </p>
+</div>
+</div>
+<!-- Card 4: Material Stock Bottleneck Alert -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm">
+<div class="flex items-center justify-between mb-space-xs">
+<div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-error animate-ping"></span>
+            Inventory Shortage Alert
+          </div>
+<span class="font-label-sm text-label-sm text-error font-medium">Cutoff: 4:00 PM</span>
+</div>
+<h4 class="font-title-sm text-title-sm text-on-surface mb-1">
+          Milanese Silk Buttonhole Twist Deficit
+        </h4>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed mb-space-md">
+          Job #022 (<span class="font-medium text-on-surface">Lord Harrison</span>) requires <span class="font-semibold text-on-surface">3.2m</span> of Milanese silk buttonhole twist. Current stock is <span class="font-semibold text-error">1.8m</span>. Order before 4:00 PM today to prevent station delay.
+        </p>
+<!-- Fabric Visual Mini Pill -->
+<div class="flex items-center justify-between bg-surface-container-low rounded-lg p-space-sm mb-space-md">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded bg-primary-container flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-[18px]">texture</span>
+</div>
+<div>
+<span class="font-label-md text-label-md text-on-surface block">Gütermann Silk • Deep Midnight</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Required delta: -1.4m spool</span>
+</div>
+</div>
+<span class="font-metric-num text-metric-num text-on-surface">1.8 / 3.2m</span>
+</div>
+<button class="w-full h-11 px-space-md rounded-lg bg-primary text-on-primary font-label-md text-label-md flex items-center justify-center gap-2 active:scale-[0.98] transition-transform" type="button">
+<span class="material-symbols-outlined text-[18px]">shopping_bag</span>
+          One-Tap Reorder ($38)
+        </button>
+</div>
+</div>
+</section>
+<!-- Interactive Atelier Prompt Chips (Quick Prompts) -->
+<section class="mb-space-xl">
+<div class="px-margin mb-space-xs flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Atelier Quick Queries</span>
+<span class="font-body-sm text-body-sm text-secondary">Tap to send</span>
+</div>
+<div class="flex gap-space-xs overflow-x-auto px-margin py-1 no-scrollbar">
+<button class="prompt-chip flex-shrink-0 bg-surface-container-lowest hover:bg-surface-container text-on-surface rounded-full px-3.5 py-2 font-label-sm text-label-sm shadow-sm flex items-center gap-1.5 transition-colors" type="button">
+<span class="material-symbols-outlined text-[15px] text-secondary">today</span>
+<span>What should I work on today?</span>
+</button>
+<button class="prompt-chip flex-shrink-0 bg-surface-container-lowest hover:bg-surface-container text-on-surface rounded-full px-3.5 py-2 font-label-sm text-label-sm shadow-sm flex items-center gap-1.5 transition-colors" type="button">
+<span class="material-symbols-outlined text-[15px] text-secondary">schedule</span>
+<span>Calculate overtime needed for Job #024</span>
+</button>
+<button class="prompt-chip flex-shrink-0 bg-surface-container-lowest hover:bg-surface-container text-on-surface rounded-full px-3.5 py-2 font-label-sm text-label-sm shadow-sm flex items-center gap-1.5 transition-colors" type="button">
+<span class="material-symbols-outlined text-[15px] text-secondary">history</span>
+<span>How many hours did my last 3 tuxedos take?</span>
+</button>
+<button class="prompt-chip flex-shrink-0 bg-surface-container-lowest hover:bg-surface-container text-on-surface rounded-full px-3.5 py-2 font-label-sm text-label-sm shadow-sm flex items-center gap-1.5 transition-colors" type="button">
+<span class="material-symbols-outlined text-[15px] text-secondary">inventory_2</span>
+<span>Check fabric vault shortage</span>
+</button>
+</div>
+</section>
+<!-- Tailor Craft Inspiration & Fabric Reference Visual Module -->
+<section class="px-margin mb-space-xl">
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm">
+<div class="flex items-center justify-between mb-space-sm">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px] text-on-surface">yard</span>
+<span class="font-title-sm text-title-sm text-on-surface">Active Cutting Room References</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Live Bench Sync</span>
+</div>
+<div class="grid grid-cols-2 gap-space-sm">
+<div class="relative rounded-lg overflow-hidden bg-surface-container aspect-square shadow-sm">
+<img class="w-full h-full object-cover" data-alt="High angle close-up photograph of bespoke navy wool chalk stripe fabric being marked with tailor's chalk next to heavy brass shears on a natural oak workshop table in a London Savile Row atelier with warm soft afternoon illumination." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDeNuhqRrw7wcbLmNLMUakx4drBpu2o3V-bebd5lKbasFxjw18Nmmn61BsX5vMPnYO5yWOBZeMt-SLrjG43j3lfmsnzYxf0n4cYgf3IzVUR-Rx_vR-_S0s9i5q0grAce_hQhLCecbeybKUSi1dB5__pPrga-74yo0rMSzIdxq7-XNnNDZwC0zHGsytJe_bQx-UMyMuirKqQogTpJG_dz0OHlRU1xn90av_LXocEXko"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/80 via-transparent to-transparent flex flex-col justify-end p-2 text-on-primary">
+<span class="font-label-sm text-label-sm font-semibold truncate">Job #024 Mensah</span>
+<span class="font-body-sm text-body-sm text-primary-fixed truncate">Scabal Super 150s Wool</span>
+</div>
+</div>
+<div class="relative rounded-lg overflow-hidden bg-surface-container aspect-square shadow-sm">
+<img class="w-full h-full object-cover" data-alt="Detailed macro shot of deep midnight navy Fox Brothers flannel suiting fabric showing rich tactile weave and fine hand basting white thread stitches resting on an antique tailor's pressing board." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBBl-3Db8kfaKTxQu7teDvV-wBis-eRKZsvpVJEkUKey-1yqKeHMxmv1Q6ad-HtqyoQBV0vgABp_AZE-h0Ww9lnkXJ_LzYr6Om-SPppOdo7Ive6CoJaf6Z6dd1M0ZZQFv3u8pPUbiElusFAyb6XRNbK6pSbvuQyhiMIA9_x0f8ueaFA1N4DuGVwqGjcqXdG_rHyd31EaC1yiQIXDYH6hfT5VYbNY2Etpxbm3W4odUE"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/80 via-transparent to-transparent flex flex-col justify-end p-2 text-on-primary">
+<span class="font-label-sm text-label-sm font-semibold truncate">Job #022 Harrison</span>
+<span class="font-body-sm text-body-sm text-primary-fixed truncate">Fox Brothers Flannel</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Interactive Chat / Query Console -->
+<section class="px-margin mb-space-lg">
+<div class="flex items-center justify-between mb-space-sm">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px] text-secondary">forum</span>
+<h3 class="font-title-sm text-title-sm text-on-surface">Atelier Query Stream</h3>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Session encrypted</span>
+</div>
+<!-- Chat Messages Stack -->
+<div class="flex flex-col gap-space-md bg-surface-container-low rounded-xl p-space-md shadow-sm mb-space-md" id="chat-stream">
+<!-- Owner Query Bubble -->
+<div class="flex items-start justify-end gap-2 pl-6">
+<div class="bg-primary text-on-primary rounded-2xl rounded-tr-xs p-space-md max-w-[85%] shadow-sm">
+<div class="flex items-center justify-between gap-2 mb-1">
+<span class="font-label-sm text-label-sm text-primary-fixed-dim uppercase tracking-wider">Head Cutter</span>
+<span class="font-label-sm text-label-sm text-primary-fixed-dim">10:41 AM</span>
+</div>
+<p class="font-body-md text-body-md text-on-primary leading-relaxed">
+            What is my highest margin commission in the queue right now?
+          </p>
+</div>
+<div class="w-7 h-7 rounded-full bg-surface-container-high flex items-center justify-center flex-shrink-0 mt-1">
+<span class="material-symbols-outlined text-[16px] text-on-surface">person</span>
+</div>
+</div>
+<!-- Sartor AI Response Bubble -->
+<div class="flex items-start gap-2 pr-4">
+<div class="w-7 h-7 rounded-full bg-primary-container text-on-primary flex items-center justify-center flex-shrink-0 mt-1">
+<span class="material-symbols-outlined text-[16px] text-secondary-fixed">neurology</span>
+</div>
+<div class="bg-surface-container-lowest text-on-surface rounded-2xl rounded-tl-xs p-space-md max-w-[88%] shadow-sm">
+<div class="flex items-center justify-between gap-2 mb-1">
+<div class="flex items-center gap-1">
+<span class="font-label-sm text-label-sm text-secondary font-semibold">Sartor Copilot</span>
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-fixed-dim"></span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Just now</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface leading-relaxed mb-space-sm">
+<strong class="font-semibold text-on-surface">Job #022 for Lord Harrison</strong> (Dinner Tuxedo in Fox Brothers Flannel).
+          </p>
+<!-- Rich Margin Breakdown Card inside response -->
+<div class="bg-surface-container-low rounded-lg p-2.5 flex flex-col gap-1 mb-2">
+<div class="flex items-center justify-between">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Gross Margin</span>
+<span class="font-metric-num text-metric-num text-secondary">68.4%</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Net Profit</span>
+<span class="font-label-md text-label-md text-on-surface font-semibold">$2,850.00</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Bench Allocation</span>
+<span class="font-body-sm text-body-sm text-on-surface">20 est. bench hours</span>
+</div>
+<div class="pt-1 mt-0.5 border-t border-surface-container-highest flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface font-semibold">Hourly Yield</span>
+<span class="font-label-md text-label-md text-on-tertiary-container font-semibold">$142.50 / hr</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="text-secondary hover:text-secondary-container font-label-sm text-label-sm flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-[14px]">open_in_new</span>
+              Inspect Lord Harrison Dossier
+            </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Conversational Prompt Console -->
+<div class="bg-surface-container-lowest rounded-xl p-space-sm shadow-md">
+<form class="flex flex-col gap-space-xs" id="ai-query-form" onsubmit="event.preventDefault(); window.handleQuerySubmit();">
+<div class="relative w-full">
+<input class="w-full h-12 bg-surface-container-low text-on-surface placeholder:text-on-surface-variant rounded-lg pl-3 pr-24 font-body-md text-body-md outline-none focus:bg-surface-container transition-colors" id="chat-input" placeholder="Ask Sartor AI anything about atelier production..." type="text"/>
+<div class="absolute right-1 top-1.5 flex items-center gap-1">
+<!-- Scan Pattern / Fabric Button -->
+<button aria-label="Scan Pattern or Fabric" class="w-9 h-9 rounded-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest flex items-center justify-center transition-colors" type="button">
+<span class="material-symbols-outlined text-[20px]">document_scanner</span>
+</button>
+<!-- Voice Query Button -->
+<button aria-label="Voice Query" class="w-9 h-9 rounded-md text-on-surface-variant hover:text-secondary flex items-center justify-center transition-colors" type="button">
+<span class="material-symbols-outlined text-[20px]">mic</span>
+</button>
+</div>
+</div>
+<!-- Input Bar Utility Actions -->
+<div class="flex items-center justify-between px-1 pt-1">
+<div class="flex items-center gap-2">
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm text-on-surface-variant">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+              Pattern AI v4
+            </span>
+<span class="font-label-sm text-label-sm text-outline-variant">•</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Fox / Scabal / Zegna Linked</span>
+</div>
+<button aria-label="Send Query" class="h-9 px-4 rounded-lg bg-primary text-on-primary font-label-sm text-label-sm flex items-center gap-1.5 active:scale-95 transition-transform" type="submit">
+<span>Ask</span>
+<span class="material-symbols-outlined text-[16px]">arrow_upward</span>
+</button>
+</div>
+</form>
+</div>
+</section>
+<!-- Interactive Client-Side Logic for Prompt Chips & Immediate Feed Feedback -->
+<script>
+    (function initSartorCopilot() {
+      const inputEl = document.getElementById('chat-input');
+      const streamEl = document.getElementById('chat-stream');
+      const promptChips = document.querySelectorAll('.prompt-chip');
+
+      promptChips.forEach(chip => {
+        chip.addEventListener('click', () => {
+          const queryText = chip.querySelector('span:last-child').textContent.trim();
+          if (inputEl) {
+            inputEl.value = queryText;
+            window.handleQuerySubmit();
+          }
+        });
+      });
+
+      window.handleQuerySubmit = function() {
+        if (!inputEl || !inputEl.value.trim() || !streamEl) return;
+        const userText = inputEl.value.trim();
+        inputEl.value = '';
+
+        // Append user bubble
+        const userBubble = document.createElement('div');
+        userBubble.className = 'flex items-start justify-end gap-2 pl-6 animate-fadeIn';
+        userBubble.innerHTML = `
+          <div class="bg-primary text-on-primary rounded-2xl rounded-tr-xs p-space-md max-w-[85%] shadow-sm">
+            <div class="flex items-center justify-between gap-2 mb-1">
+              <span class="font-label-sm text-label-sm text-primary-fixed-dim uppercase tracking-wider">Head Cutter</span>
+              <span class="font-label-sm text-label-sm text-primary-fixed-dim">Now</span>
+            </div>
+            <p class="font-body-md text-body-md text-on-primary leading-relaxed">${escapeHtml(userText)}</p>
+          </div>
+          <div class="w-7 h-7 rounded-full bg-surface-container-high flex items-center justify-center flex-shrink-0 mt-1">
+            <span class="material-symbols-outlined text-[16px] text-on-surface">person</span>
+          </div>
+        `;
+        streamEl.appendChild(userBubble);
+
+        // Simulate bespoke assistant reply
+        setTimeout(() => {
+          const aiBubble = document.createElement('div');
+          aiBubble.className = 'flex items-start gap-2 pr-4';
+          aiBubble.innerHTML = `
+            <div class="w-7 h-7 rounded-full bg-primary-container text-on-primary flex items-center justify-center flex-shrink-0 mt-1">
+              <span class="material-symbols-outlined text-[16px] text-secondary-fixed">neurology</span>
+            </div>
+            <div class="bg-surface-container-lowest text-on-surface rounded-2xl rounded-tl-xs p-space-md max-w-[88%] shadow-sm">
+              <div class="flex items-center justify-between gap-2 mb-1">
+                <span class="font-label-sm text-label-sm text-secondary font-semibold">Sartor Copilot</span>
+                <span class="font-label-sm text-label-sm text-on-surface-variant">Just now</span>
+              </div>
+              <p class="font-body-md text-body-md text-on-surface leading-relaxed">
+                Analyzing production ledger and bench schedules for: <em>"${escapeHtml(userText)}"</em>.
+              </p>
+              <div class="bg-surface-container-low rounded-lg p-2.5 mt-2">
+                <span class="font-body-sm text-body-sm text-on-surface">Optimal studio cadence maintained. Recommended next step is marking lapel roll lines on Job #024 before 1:00 PM.</span>
+              </div>
+            </div>
+          `;
+          streamEl.appendChild(aiBubble);
+          aiBubble.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 450);
+      };
+
+      function escapeHtml(str) {
+        return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      }
+    })();
+  </script>
+</div></main></body></html>

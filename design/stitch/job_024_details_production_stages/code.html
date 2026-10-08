@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+
+<html class="h-full" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_stack" name="shell-type"/><title>SartorOS Bespoke</title><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "on-surface": "#111c2d", "on-tertiary-fixed": "#002113", "surface-dim": "#cfdaf2", "on-surface-variant": "#45474c", "on-secondary-container": "#fefcff", "surface-bright": "#f9f9ff", "surface-container-high": "#dee8ff", "inverse-surface": "#263143", "on-tertiary-container": "#009668", "secondary-container": "#316bf3", "surface-container-lowest": "#ffffff", "secondary-fixed-dim": "#b4c5ff", "on-background": "#111c2d", "on-primary": "#ffffff", "on-tertiary": "#ffffff", "on-secondary-fixed-variant": "#003ea8", "inverse-primary": "#bbc7e0", "secondary-fixed": "#dbe1ff", "surface-container": "#e7eeff", "primary-fixed-dim": "#bbc7e0", "surface": "#f9f9ff", "on-primary-fixed-variant": "#3c475c", "on-primary-container": "#78849c", "surface-container-highest": "#d8e3fb", "on-primary-fixed": "#101c2f", "inverse-on-surface": "#ecf1ff", "primary": "#000000", "on-error": "#ffffff", "tertiary-fixed": "#6ffbbe", "secondary": "#0051d5", "on-secondary-fixed": "#00174b", "outline-variant": "#c5c6cd", "tertiary": "#000000", "surface-container-low": "#f0f3ff", "error": "#ba1a1a", "surface-variant": "#d8e3fb", "on-tertiary-fixed-variant": "#005236", "on-secondary": "#ffffff", "primary-container": "#101c2f", "primary-fixed": "#d7e3fd", "error-container": "#ffdad6", "surface-tint": "#535f75", "background": "#f9f9ff", "outline": "#75777d", "tertiary-container": "#002113", "on-error-container": "#93000a", "tertiary-fixed-dim": "#4edea3" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "space-md": "0.75rem", "margin-tablet": "1.5rem", "space-xl": "1.5rem", "space-sm": "0.5rem", "space-xs": "0.25rem", "space-lg": "1rem", "gutter": "0.75rem", "gutter-tablet": "1rem", "margin": "1rem" }, "fontFamily": { "display-lg-mobile": ["Plus Jakarta Sans"], "label-sm": ["Plus Jakarta Sans"], "body-md": ["Plus Jakarta Sans"], "headline-md": ["Plus Jakarta Sans"], "body-sm": ["Plus Jakarta Sans"], "title-sm": ["Plus Jakarta Sans"], "headline-lg": ["Plus Jakarta Sans"], "metric-num": ["Plus Jakarta Sans"], "body-lg": ["Plus Jakarta Sans"], "label-md": ["Plus Jakarta Sans"], "display-lg": ["Plus Jakarta Sans"] }, "fontSize": { "display-lg-mobile": ["26px", { "lineHeight": "34px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "600" }], "body-md": ["13px", { "lineHeight": "18px", "fontWeight": "400" }], "headline-md": ["18px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }], "title-sm": ["15px", { "lineHeight": "20px", "fontWeight": "600" }], "headline-lg": ["22px", { "lineHeight": "28px", "letterSpacing": "-0.015em", "fontWeight": "600" }], "metric-num": ["20px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "700" }], "body-lg": ["15px", { "lineHeight": "22px", "fontWeight": "400" }], "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600" }], "display-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }] } } } }</script><style>@layer base{html,body{width:100vw;margin:0;padding:0;min-height:100%;}body{overscroll-behavior-y:none;-webkit-tap-highlight-color:transparent;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}}::-webkit-scrollbar{display:none;}</style></head><body class="bg-surface text-on-surface antialiased flex flex-col min-h-screen selection:bg-secondary-fixed"><header class="fixed top-0 w-full z-50 pt-safe bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 px-margin flex items-center justify-between gap-space-sm"><div class="flex items-center gap-space-sm min-w-0"><button aria-label="Back" class="w-11 h-11 flex items-center justify-center rounded-full text-on-surface hover:bg-surface-container active:scale-95 transition-all -ml-2" onclick="history.back()" type="button"><span class="material-symbols-outlined text-[22px]">arrow_back</span></button><img alt="SartorOS Monogram Logo" class="h-8 w-auto object-contain flex-shrink-0 hidden sm:block" src="https://lh3.googleusercontent.com/aida/AEtjO1UaXdcaeMhgZdDbd94C0vU9bFZ5ffBtJ-c_C14-VrfYhUZz77I65929LjcS_aUOg72MZxkwMO-hI-IcGHNMT5TJVZF-9C6M2BhRsqYdJE1QChw3jq7tZ0CxFVhYaKMhqwGxo-g8NmqrTn-muqXYkPZ2M5JuZpUo4wnoGnysUQqYQyQJE8XiidJuABw8Nlm_-SBb9L-Gby0o6w3YZe2xwG4SlzkSYOSwTx7uwSBaVnlB"/><div class="flex flex-col min-w-0"><span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider truncate">SartorOS Bespoke</span><h1 class="font-title-sm text-title-sm text-on-surface tracking-tight truncate">Job Details</h1></div></div><div class="flex items-center gap-space-xs flex-shrink-0"><button aria-label="Notifications" class="relative w-11 h-11 flex items-center justify-center rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" type="button"><span class="material-symbols-outlined text-[22px]">notifications</span><span class="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-secondary ring-2 ring-surface"></span></button><div class="flex items-center pl-space-xs"><img alt="Profile" class="w-8 h-8 rounded-full object-cover ring-1 ring-surface-container-high" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAESmiSUn-R2d4OMA-QraQjXL6w8KmACl5Ovo-3oirDD4dMvZFbYw1VQN0jFyLmDtvzh7zzgaR5gw99_GfVdAmAIOo0aLTKvHfjLwes-lbLD2KI0aRArJNQXb8Ekw0b6qsa-XvmiuLXRTIxVWioAehlZE2BAFGFQXkBCgO9IuJbRPoUCUOh5tVuS_15L7LhOy2_9POoi5YpoNkqOG_IWw5RA19zXx2Ww1mrGD5TUTY"/></div></div></div></header><main class="flex-1 w-full bg-surface pt-16 pb-safe"><div class="flex flex-col w-full px-margin pb-space-xl space-y-space-lg">
+<!-- Sub-header & Quick Action Bar -->
+<div class="flex items-center justify-between pt-space-sm">
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-space-xs">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-secondary font-bold">Bespoke Atelier</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Order #024</span>
+</div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface tracking-tight truncate">Kofi Mensah</h2>
+</div>
+<!-- Quick Actions -->
+<div class="flex items-center gap-space-xs shrink-0">
+<button aria-label="Edit Job" class="w-10 h-10 flex items-center justify-center rounded-xl bg-surface-container hover:bg-surface-container-high active:scale-95 text-on-surface transition-all shadow-sm" type="button">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+<button aria-label="Share Receipt" class="w-10 h-10 flex items-center justify-center rounded-xl bg-surface-container hover:bg-surface-container-high active:scale-95 text-on-surface transition-all shadow-sm" type="button">
+<span class="material-symbols-outlined text-[20px]">share</span>
+</button>
+<button aria-label="Print Garment Tag" class="w-10 h-10 flex items-center justify-center rounded-xl bg-primary text-on-primary hover:bg-primary-container active:scale-95 transition-all shadow-sm" type="button">
+<span class="material-symbols-outlined text-[20px]">print</span>
+</button>
+</div>
+</div>
+<!-- Job Overview Hero Bento -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col space-y-space-md">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2 mb-1">
+<span class="px-2 py-0.5 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm font-semibold tracking-wide flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-error animate-ping"></span>
+            High Priority
+          </span>
+<span class="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm font-medium">Due Oct 14</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface font-semibold">3-Piece Bespoke Suit</h3>
+<p class="font-body-md text-body-md text-on-surface-variant truncate">Jacket, Waistcoat &amp; Trousers</p>
+</div>
+<div class="w-14 h-14 rounded-xl overflow-hidden shadow-sm shrink-0 bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="Macro close-up photograph of luxurious Scabal Royal Ultrafine navy 150s virgin wool fabric with exquisite fine twill weave texture, soft atelier morning light, muted studio background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBZSrZoiH-pZQl37TXb6h7l5u9maVPikNWVLPGigbA9KRQThwQlN_BDlFncPZzggdjtlZCYYyg5dXhjx1GWzBQqHHzcx_4qcXWNNkLozTupucPz-7TWMv_b7A_ndP1Qy9_0_J0qJ3JZF4piD9vTAj4RuBdhaEuTBsXZiRouVd1iPfKaCGJknkwH9Wn4jVk7Bg-A0Xsdtg4zSugK6toFY_bE0ktFvn9nqZh2lVh9w8o"/>
+</div>
+</div>
+<!-- Fabric Details Pill Box -->
+<div class="bg-surface-container-low rounded-lg p-space-md flex items-center justify-between">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-8 h-8 rounded-lg bg-surface-container-highest flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined text-[18px]">texture</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Selected Textile</span>
+<span class="font-body-md text-body-md font-semibold text-on-surface truncate">Scabal Royal Ultrafine 150s</span>
+</div>
+</div>
+<div class="text-right shrink-0 pl-2">
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Roll Tag</span>
+<span class="font-label-sm text-label-sm font-bold text-secondary">#SC-892</span>
+</div>
+</div>
+<!-- Meta Highlights -->
+<div class="grid grid-cols-2 gap-space-sm pt-space-xs">
+<div class="flex flex-col p-2.5 rounded-lg bg-surface-container">
+<span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">calendar_today</span> Ordered
+        </span>
+<span class="font-title-sm text-title-sm text-on-surface mt-0.5">Oct 4, 2024</span>
+</div>
+<div class="flex flex-col p-2.5 rounded-lg bg-surface-container">
+<span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">event_upcoming</span> Delivery
+        </span>
+<span class="font-title-sm text-title-sm text-on-surface mt-0.5">Oct 14, 2024</span>
+</div>
+</div>
+</div>
+<!-- Radial Progress & Timer Station -->
+<div class="bg-primary-container text-on-primary rounded-xl p-space-lg shadow-md flex flex-col items-center relative overflow-hidden">
+<!-- Subtle sartorial backdrop stitch graphic -->
+<div class="absolute -right-8 -bottom-8 opacity-5 pointer-events-none">
+<span class="material-symbols-outlined text-[180px]">straighten</span>
+</div>
+<div class="w-full flex items-center justify-between mb-space-md">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-primary-fixed-dim font-bold flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-secondary-fixed animate-pulse"></span>
+        Production Status
+      </span>
+<span class="font-label-sm text-label-sm text-primary-fixed-dim bg-on-primary-fixed-variant px-2.5 py-0.5 rounded-full">Sewing Phase</span>
+</div>
+<!-- Modern SVG Radial Gauge -->
+<div class="relative w-44 h-44 flex items-center justify-center my-space-xs">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 120 120">
+<!-- Background Track -->
+<circle cx="60" cy="60" fill="transparent" r="50" stroke="#263143" stroke-width="9"></circle>
+<!-- Progress Stroke (68% circumference = 2 * PI * 50 = 314.15; 314.15 * 0.68 = 213.62) -->
+<circle cx="60" cy="60" fill="transparent" r="50" stroke="#316bf3" stroke-dasharray="314.15" stroke-dashoffset="100.5" stroke-linecap="round" stroke-width="9"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+<span class="font-display-lg text-display-lg font-bold text-on-primary tracking-tight">68<span class="text-secondary-fixed text-headline-md">%</span></span>
+<span class="font-label-sm text-label-sm text-primary-fixed-dim -mt-1 font-medium">Complete</span>
+</div>
+</div>
+<!-- Duration breakdown -->
+<div class="text-center space-y-1 mb-space-lg">
+<p class="font-body-md text-body-md text-surface-container-high font-medium">10.5 of 15.5 Hours Completed</p>
+<div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-on-primary-fixed-variant text-secondary-fixed font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px]">timelapse</span>
+        5.0 hrs remaining to baseline
+      </div>
+</div>
+<!-- Big Action Button with Interactive Feedback -->
+<button class="w-full py-3.5 px-space-lg rounded-xl bg-secondary-container hover:bg-secondary active:scale-[0.98] text-on-secondary-container font-title-sm text-title-sm font-semibold flex items-center justify-center gap-space-sm shadow-md transition-all" id="timer-toggle-btn" type="button">
+<span class="material-symbols-outlined text-[20px]" id="timer-icon">play_arrow</span>
+<span id="timer-label">Start Work Timer (Sewing)</span>
+</button>
+</div>
+<!-- Active Task List & Timer Sub-widget -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col space-y-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-secondary text-[20px]">format_list_bulleted</span>
+<h3 class="font-title-sm text-title-sm text-on-surface font-bold">Active Subtasks</h3>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Stage 3 of 7</span>
+</div>
+<div class="space-y-space-xs">
+<!-- Task 1 (Done) -->
+<div class="flex items-center justify-between p-3 rounded-lg bg-surface-container-low transition-colors">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-6 h-6 rounded-full bg-tertiary-fixed text-on-tertiary-fixed flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[16px] font-bold">check</span>
+</div>
+<span class="font-body-md text-body-md text-on-surface-variant line-through truncate">Assemble canvas chest piece</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant shrink-0 pl-2">Done</span>
+</div>
+<!-- Task 2 (Done) -->
+<div class="flex items-center justify-between p-3 rounded-lg bg-surface-container-low transition-colors">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-6 h-6 rounded-full bg-tertiary-fixed text-on-tertiary-fixed flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[16px] font-bold">check</span>
+</div>
+<span class="font-body-md text-body-md text-on-surface-variant line-through truncate">Attach canvassed lapels &amp; pad stitch</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant shrink-0 pl-2">Done</span>
+</div>
+<!-- Task 3 (Current / In Progress) -->
+<div class="flex items-center justify-between p-3 rounded-lg bg-surface-container-highest shadow-xs">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-6 h-6 rounded-full bg-secondary text-on-secondary flex items-center justify-center shrink-0 animate-pulse">
+<span class="material-symbols-outlined text-[14px]">edit_note</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-body-md text-body-md font-semibold text-on-surface truncate">Set sleeves &amp; shoulder pads</span>
+<span class="font-label-sm text-label-sm text-secondary font-medium">1h 20m logged today</span>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-semibold shrink-0">Active</span>
+</div>
+<!-- Task 4 (Pending) -->
+<div class="flex items-center justify-between p-3 rounded-lg bg-surface-container-low opacity-75">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-6 h-6 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center shrink-0">
+<span class="w-2 h-2 rounded-full bg-outline-variant"></span>
+</div>
+<span class="font-body-md text-body-md text-on-surface truncate">Waistcoat pocket welts</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant shrink-0 pl-2">Pending</span>
+</div>
+</div>
+</div>
+<!-- Production Stages: Tailoring Timeline -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col space-y-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">linear_scale</span>
+<h3 class="font-title-sm text-title-sm text-on-surface font-bold">Production Timeline</h3>
+</div>
+<span class="font-label-sm text-label-sm text-secondary font-semibold">Stage 3 of 7</span>
+</div>
+<!-- Vertical Timeline -->
+<div class="relative pl-6 space-y-6 before:content-[''] before:absolute before:left-2.5 before:top-3 before:bottom-3 before:w-0.5 before:bg-surface-container-highest">
+<!-- Step 1 (Completed) -->
+<div class="relative flex items-start gap-space-md">
+<div class="absolute -left-6 top-0.5 w-5 h-5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed flex items-center justify-center shadow-xs">
+<span class="material-symbols-outlined text-[14px] font-bold">check</span>
+</div>
+<div class="flex flex-col min-w-0 flex-1">
+<div class="flex items-baseline justify-between">
+<h4 class="font-title-sm text-title-sm font-semibold text-on-surface">1. Measurement &amp; Drafting</h4>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Oct 5</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Completed • 2.5 hrs logged</p>
+</div>
+</div>
+<!-- Step 2 (Completed) -->
+<div class="relative flex items-start gap-space-md">
+<div class="absolute -left-6 top-0.5 w-5 h-5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed flex items-center justify-center shadow-xs">
+<span class="material-symbols-outlined text-[14px] font-bold">check</span>
+</div>
+<div class="flex flex-col min-w-0 flex-1">
+<div class="flex items-baseline justify-between">
+<h4 class="font-title-sm text-title-sm font-semibold text-on-surface">2. Fabric Shearing &amp; Cutting</h4>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Oct 7</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Completed • 3.0 hrs logged</p>
+</div>
+</div>
+<!-- Step 3 (Current Active) -->
+<div class="relative flex items-start gap-space-md">
+<div class="absolute -left-6 top-0.5 w-5 h-5 rounded-full bg-secondary text-on-secondary flex items-center justify-center shadow-sm ring-4 ring-secondary-fixed">
+<span class="w-2 h-2 rounded-full bg-surface-bright"></span>
+</div>
+<div class="flex flex-col min-w-0 flex-1 bg-surface-container-low p-space-sm rounded-lg">
+<div class="flex items-baseline justify-between">
+<h4 class="font-title-sm text-title-sm font-bold text-secondary">3. Sewing &amp; Assembly</h4>
+<span class="px-2 py-0.5 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-semibold animate-pulse">In Progress</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Current Phase • 5.0 of 6.0 hrs logged</p>
+<!-- Mini Progress Bar inside active step -->
+<div class="w-full h-1.5 bg-surface-container-highest rounded-full mt-2 overflow-hidden">
+<div class="h-full bg-secondary rounded-full" style="width: 83%;"></div>
+</div>
+</div>
+</div>
+<!-- Step 4 (Scheduled) -->
+<div class="relative flex items-start gap-space-md opacity-85">
+<div class="absolute -left-6 top-0.5 w-5 h-5 rounded-full bg-surface-container-highest flex items-center justify-center">
+<span class="w-1.5 h-1.5 rounded-full bg-outline"></span>
+</div>
+<div class="flex flex-col min-w-0 flex-1">
+<div class="flex items-baseline justify-between">
+<h4 class="font-title-sm text-title-sm font-medium text-on-surface">4. Baste Fitting &amp; Alteration</h4>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Oct 13</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Scheduled consultation • Est. 1.0 hr</p>
+</div>
+</div>
+<!-- Step 5 (Pending) -->
+<div class="relative flex items-start gap-space-md opacity-70">
+<div class="absolute -left-6 top-0.5 w-5 h-5 rounded-full bg-surface-container-highest flex items-center justify-center">
+<span class="w-1.5 h-1.5 rounded-full bg-outline"></span>
+</div>
+<div class="flex flex-col min-w-0 flex-1">
+<div class="flex items-baseline justify-between">
+<h4 class="font-title-sm text-title-sm font-medium text-on-surface">5. Hand Finishing &amp; Buttonholes</h4>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Oct 13 PM</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Lining, lapel pick stitching • Est. 2.0 hrs</p>
+</div>
+</div>
+<!-- Step 6 (Pending) -->
+<div class="relative flex items-start gap-space-md opacity-70">
+<div class="absolute -left-6 top-0.5 w-5 h-5 rounded-full bg-surface-container-highest flex items-center justify-center">
+<span class="w-1.5 h-1.5 rounded-full bg-outline"></span>
+</div>
+<div class="flex flex-col min-w-0 flex-1">
+<div class="flex items-baseline justify-between">
+<h4 class="font-title-sm text-title-sm font-medium text-on-surface">6. Final Press &amp; Inspection</h4>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Oct 14 AM</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Steam moulding, atelier tag • Est. 1.0 hr</p>
+</div>
+</div>
+<!-- Step 7 (Target Finish) -->
+<div class="relative flex items-start gap-space-md opacity-70">
+<div class="absolute -left-6 top-0.5 w-5 h-5 rounded-full bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-[13px] text-outline">flag</span>
+</div>
+<div class="flex flex-col min-w-0 flex-1">
+<div class="flex items-baseline justify-between">
+<h4 class="font-title-sm text-title-sm font-medium text-on-surface">7. Ready for Collection</h4>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Oct 14, 4:00 PM</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Garment bagging &amp; client dispatch</p>
+</div>
+</div>
+</div>
+</div>
+<!-- AI Job Intelligence Card -->
+<div class="bg-surface-container-high rounded-xl p-space-lg shadow-sm flex flex-col space-y-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<div class="w-7 h-7 rounded-lg bg-primary text-on-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[16px]">psychology</span>
+</div>
+<h3 class="font-title-sm text-title-sm text-on-surface font-bold">Atelier AI Production Analysis</h3>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-surface-container-lowest text-secondary font-label-sm text-label-sm font-semibold">Live Model</span>
+</div>
+<!-- AI metrics row -->
+<div class="grid grid-cols-2 gap-space-sm">
+<div class="p-space-sm rounded-lg bg-surface-container-lowest flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Predicted Finish</span>
+<span class="font-body-md text-body-md font-bold text-on-surface mt-0.5">Oct 14 • 2:30 PM</span>
+<span class="font-label-sm text-label-sm text-on-tertiary-container font-semibold mt-0.5 flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[12px]">schedule</span> +1.5h buffer
+        </span>
+</div>
+<div class="p-space-sm rounded-lg bg-surface-container-lowest flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Risk Assessment</span>
+<span class="font-body-md text-body-md font-bold text-on-surface mt-0.5">Low Risk (5%)</span>
+<span class="font-label-sm text-label-sm text-on-tertiary-container font-semibold mt-0.5 flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[12px]">check_circle</span> On schedule
+        </span>
+</div>
+</div>
+<!-- Tailor advisory prompt -->
+<div class="p-space-sm rounded-lg bg-surface-container-lowest flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-secondary text-[18px] shrink-0 mt-0.5">tips_and_updates</span>
+<p class="font-body-sm text-body-sm text-on-surface">
+<strong class="font-semibold text-on-surface">Tailor Tip:</strong> Client requested a slightly deeper armhole scoop; verify sleeve pitch angle during baste fitting on Oct 13.
+      </p>
+</div>
+</div>
+<!-- Customer Specs, Measurements & Reference Photo -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col space-y-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">tune</span>
+<h3 class="font-title-sm text-title-sm text-on-surface font-bold">Client Specifications</h3>
+</div>
+<button class="font-label-sm text-label-sm text-secondary font-semibold hover:underline" type="button">
+        Full Dossier →
+      </button>
+</div>
+<!-- Quick measurement pills -->
+<div class="grid grid-cols-3 gap-space-xs text-center">
+<div class="p-2.5 rounded-lg bg-surface-container-low flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Chest</span>
+<span class="font-metric-num text-metric-num text-on-surface">42<span class="text-label-sm font-normal text-on-surface-variant ml-0.5">in</span></span>
+</div>
+<div class="p-2.5 rounded-lg bg-surface-container-low flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Waist</span>
+<span class="font-metric-num text-metric-num text-on-surface">34<span class="text-label-sm font-normal text-on-surface-variant ml-0.5">in</span></span>
+</div>
+<div class="p-2.5 rounded-lg bg-surface-container-low flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Inseam</span>
+<span class="font-metric-num text-metric-num text-on-surface">32<span class="text-label-sm font-normal text-on-surface-variant ml-0.5">in</span></span>
+</div>
+</div>
+<!-- Reference Visual Swatch & Tailor Customization Note -->
+<div class="flex items-start gap-space-md p-space-md rounded-lg bg-surface-container-low">
+<div class="w-16 h-20 rounded-lg overflow-hidden shrink-0 shadow-sm bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="High resolution fashion tailoring reference photograph of a bespoke six-button double-breasted navy waistcoat with peak lapels, draped on a Savile Row tailor mannequin, warm ambient studio lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCtIa62X1amNUUWtSE2iYozysIZdWvzHCiFO2jDhu09jzLwViFOmzwCvVXeTCYXiO-EXR_8xxXjUVeSYc3wW0BEMDqnodyxru9cqsMttqGIEjXp4XdUrp-edBFf0rb8yoY_zkgnjaliGwM14dSbcWPgAuf0H3XV5J5JNqMxXo7rzZhthL0579DNDFQT_HYFzEueNsn-IYhITAT1KbRl268HzjLXN0DbhBQNRqbKB3o"/>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-sm text-label-sm uppercase font-bold text-secondary">Styling &amp; Finish Notes</span>
+<p class="font-body-sm text-body-sm text-on-surface mt-1 leading-snug">
+          Dark matte horn buttons, contrast burgundy cupro lining, and hand-embroidered monogram on inner chest pocket: <span class="font-semibold text-on-surface">"K.M."</span>
+</p>
+</div>
+</div>
+</div>
+<!-- Bottom Quick Controls Sheet -->
+<div class="flex items-center gap-space-sm pt-space-xs">
+<button class="flex-1 py-3 px-space-md rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface font-title-sm text-title-sm font-medium flex items-center justify-center gap-space-xs shadow-sm transition-all active:scale-[0.98]" type="button">
+<span class="material-symbols-outlined text-[18px]">mic</span>
+      Voice Log Note
+    </button>
+<button class="flex-1 py-3 px-space-md rounded-xl bg-primary hover:bg-primary-container text-on-primary font-title-sm text-title-sm font-semibold flex items-center justify-center gap-space-xs shadow-sm transition-all active:scale-[0.98]" type="button">
+<span class="material-symbols-outlined text-[18px]">verified</span>
+      Mark Stage Complete
+    </button>
+</div>
+</div>
+<script>
+  // Micro-interaction: Timer toggle button state
+  const timerBtn = document.getElementById('timer-toggle-btn');
+  const timerIcon = document.getElementById('timer-icon');
+  const timerLabel = document.getElementById('timer-label');
+  let isTimerRunning = false;
+
+  if (timerBtn) {
+    timerBtn.addEventListener('click', () => {
+      isTimerRunning = !isTimerRunning;
+      if (isTimerRunning) {
+        timerBtn.classList.remove('bg-secondary-container', 'hover:bg-secondary');
+        timerBtn.classList.add('bg-error', 'hover:bg-error-container', 'text-on-error');
+        timerIcon.textContent = 'pause';
+        timerLabel.textContent = 'Pause Timer (00:01 logged)';
+      } else {
+        timerBtn.classList.remove('bg-error', 'hover:bg-error-container', 'text-on-error');
+        timerBtn.classList.add('bg-secondary-container', 'hover:bg-secondary');
+        timerIcon.textContent = 'play_arrow';
+        timerLabel.textContent = 'Resume Work Timer (Sewing)';
+      }
+    });
+  }
+</script></main></body></html>

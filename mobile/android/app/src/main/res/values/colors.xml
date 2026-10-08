@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Stitch canvas colour (surface #F9F9FF), so the launch screen blends into the first Flutter frame. -->
+    <color name="nutofe_surface">#F9F9FF</color>
+</resources>

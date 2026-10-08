@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         colors="true"
+         failOnWarning="true"
+         failOnRisky="true"
+         cacheDirectory=".phpunit.cache">
+    <testsuites>
+        <testsuite name="Unit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+        <testsuite name="Feature">
+            <directory>tests/Feature</directory>
+        </testsuite>
+    </testsuites>
+    <source>
+        <include>
+            <directory>app</directory>
+        </include>
+    </source>
+    <php>
+        <!-- Tests always use the separate MySQL 8.4 test database (rebuilt by RefreshDatabase). -->
+        <env name="APP_ENV" value="testing" force="true"/>
+        <env name="APP_DEBUG" value="false" force="true"/>
+        <env name="APP_REQUIRE_HTTPS" value="false" force="true"/>
+        <env name="APP_MAINTENANCE_DRIVER" value="file"/>
+        <env name="DB_CONNECTION" value="mysql" force="true"/>
+        <env name="DB_DATABASE" value="nutofe_test" force="true"/>
+        <env name="CACHE_STORE" value="array" force="true"/>
+        <env name="SESSION_DRIVER" value="array" force="true"/>
+        <env name="QUEUE_CONNECTION" value="sync" force="true"/>
+        <env name="MAIL_MAILER" value="array"/>
+        <env name="LOG_CHANNEL" value="stderr" force="true"/>
+        <env name="LOG_LEVEL" value="critical" force="true"/>
+        <!-- Cheaper Argon2id parameters: same algorithm, faster tests. -->
+        <env name="HASH_DRIVER" value="argon2id" force="true"/>
+        <env name="ARGON_MEMORY" value="1024" force="true"/>
+        <env name="ARGON_TIME" value="1" force="true"/>
+        <env name="MAX_FAILED_LOGINS" value="5" force="true"/>
+        <env name="LOGIN_LOCKOUT_MINUTES" value="15" force="true"/>
+        <env name="REFRESH_REUSE_GRACE_SECONDS" value="10" force="true"/>
+        <env name="AUTH_ATTEMPTS_PER_MINUTE" value="10" force="true"/>
+    </php>
+</phpunit>
