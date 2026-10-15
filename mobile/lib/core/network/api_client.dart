@@ -65,6 +65,15 @@ class ApiClient {
 
   Future<dynamic> delete(String path) => _send(() => _dio.delete<dynamic>(path));
 
+  /// Any method (offline changes are replayed through this).
+  Future<dynamic> send(String method, String path, {Map<String, dynamic>? body}) => switch (method) {
+        'POST' => post(path, body: body),
+        'PATCH' => patch(path, body: body),
+        'PUT' => put(path, body: body),
+        'DELETE' => delete(path),
+        _ => get(path),
+      };
+
   /// GET a paginated list and map each item.
   Future<Paged<T>> getPaged<T>(String path, T Function(Map<String, dynamic>) fromJson, {Map<String, dynamic>? query}) async {
     final envelope = await _sendEnvelope(() => _dio.get<dynamic>(path, queryParameters: _clean(query)));

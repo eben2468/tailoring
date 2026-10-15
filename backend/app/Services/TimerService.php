@@ -43,14 +43,14 @@ final class TimerService
     }
 
     /** Starts a timer on a stage. Starting the stage that is already running is a no-op (retries). */
-    public function start(JobTask $task, ?string $id, ?string $note, RequestContext $context): WorkLog
+    public function start(JobTask $task, ?string $id, ?string $note, RequestContext $context, ?Carbon $at = null): WorkLog
     {
         if ($id !== null && ($existing = WorkLog::findByUuid($id)) !== null) {
             return $existing;
         }
         $user = $this->user($context);
 
-        return $this->guardUniqueRunning(fn () => DB::transaction(function () use ($task, $id, $note, $user, $context): WorkLog {
+        return $this->guardUniqueRunning(fn () => DB::transaction(function () use ($task, $id, $note, $user, $context, $at): WorkLog {
             [$job, $locked] = $this->lockTask($task);
             $this->guardWorkable($job, $locked);
             if ($locked->isClosed()) {
@@ -66,17 +66,24 @@ final class TimerService
                 throw ApiException::conflict("A timer is already running on {$other}. Switch to this stage or stop it first.", 'TIMER_ALREADY_RUNNING');
             }
 
-            return $this->open($job, $locked, $id, $note, $context);
+            if ($at !== null) {
+                $this->guardNoOverlap($user, $at);
+            }
+
+            return $this->open($job, $locked, $id, $note, $context, $at);
         }));
     }
 
     /** Stops the running timer; with $complete the stage is marked completed in the same transaction. */
-    public function stop(?string $note, bool $complete, RequestContext $context): WorkLog
+    public function stop(?string $note, bool $complete, RequestContext $context, ?string $entryId = null, ?Carbon $at = null): WorkLog
     {
         $user = $this->user($context);
+        if (($done = $this->alreadyStopped($user, $entryId)) !== null) {
+            return $done; // replay of a stop that already reached the server
+        }
 
-        return DB::transaction(function () use ($user, $note, $complete, $context): WorkLog {
-            $log = $this->close($user, $note, $context);
+        return DB::transaction(function () use ($user, $note, $complete, $context, $at): WorkLog {
+            $log = $this->close($user, $note, $context, $at);
             if ($complete) {
                 /** @var JobTask $task */
                 $task = JobTask::query()->whereKey($log->job_task_id)->firstOrFail();
@@ -88,20 +95,23 @@ final class TimerService
     }
 
     /** Stops the running timer (if any) and starts one on another stage, atomically. */
-    public function switch(JobTask $to, ?string $id, ?string $note, RequestContext $context): WorkLog
+    public function switch(JobTask $to, ?string $id, ?string $note, RequestContext $context, ?Carbon $at = null): WorkLog
     {
+        if ($id !== null && ($existing = WorkLog::findByUuid($id)) !== null) {
+            return $existing; // replay
+        }
         $user = $this->user($context);
 
-        return $this->guardUniqueRunning(fn () => DB::transaction(function () use ($to, $id, $note, $user, $context): WorkLog {
+        return $this->guardUniqueRunning(fn () => DB::transaction(function () use ($to, $id, $note, $user, $context, $at): WorkLog {
             $running = $this->active($user);
             if ($running !== null && $running->job_task_id === $to->getKey()) {
                 return $running;
             }
             if ($running !== null) {
-                $this->close($user, $note, $context);
+                $this->close($user, $note, $context, $at);
             }
 
-            return $this->start($to, $id, null, $context);
+            return $this->start($to, $id, null, $context, $at);
         }));
     }
 
@@ -109,7 +119,7 @@ final class TimerService
      * Manual entry ({started_at, ended_at}) or adjustment ({duration_seconds}: placed right before the
      * running timer, or ending now, so it never overlaps the live session).
      *
-     * @param  array{id?: string|null, started_at?: string|null, ended_at?: string|null, duration_seconds?: int|null, note?: string|null}  $input
+     * @param  array{id?: string|null, started_at?: string|null, ended_at?: string|null, duration_seconds?: int|null, occurred_at?: string|null, note?: string|null}  $input
      */
     public function addEntry(JobTask $task, array $input, RequestContext $context): WorkLog
     {
@@ -123,7 +133,7 @@ final class TimerService
             $this->guardWorkable($job, $locked, allowReady: true);
 
             if (isset($input['duration_seconds'])) {
-                $end = $this->active($user)?->started_at?->copy() ?? now();
+                $end = $this->active($user)?->started_at?->copy() ?? (isset($input['occurred_at']) ? $this->occurredAt((string) $input['occurred_at']) : now());
                 $start = $end->copy()->subSeconds((int) $input['duration_seconds']);
                 $note = $input['note'] ?? sprintf('Adjustment +%s', $this->humanDuration((int) $input['duration_seconds']));
             } else {
@@ -210,7 +220,7 @@ final class TimerService
         });
     }
 
-    private function open(Job $job, JobTask $task, ?string $id, ?string $note, RequestContext $context): WorkLog
+    private function open(Job $job, JobTask $task, ?string $id, ?string $note, RequestContext $context, ?Carbon $at = null): WorkLog
     {
         if ($task->status === 'pending') {
             $task->setAttribute('status', 'in_progress');
@@ -222,7 +232,7 @@ final class TimerService
             'job_task_id' => $task->getKey(),
             'device_id' => $context->session?->deviceId,
             'entry_type' => 'timer',
-            'started_at' => now(),
+            'started_at' => $at ?? now(),
             'note' => $note,
         ]);
         if ($id !== null) {
@@ -234,7 +244,7 @@ final class TimerService
         return $log;
     }
 
-    private function close(User $user, ?string $note, RequestContext $context): WorkLog
+    private function close(User $user, ?string $note, RequestContext $context, ?Carbon $at = null): WorkLog
     {
         $running = $this->active($user);
         if ($running === null) {
@@ -246,7 +256,7 @@ final class TimerService
 
         /** @var WorkLog $log */
         $log = WorkLog::query()->whereKey($running->getKey())->lockForUpdate()->firstOrFail();
-        $end = now();
+        $end = $at ?? now();
         if ($end->lessThanOrEqualTo($log->started_at)) {
             $end = $log->started_at->copy()->addMillisecond(); // stopped in the same instant it started
         }
@@ -259,6 +269,47 @@ final class TimerService
         $this->audit->log($context, 'timer.stopped', 'work_log', $log->uuid(), ['duration_seconds' => $log->elapsedSeconds(), 'needs_review' => $log->needs_review]);
 
         return $log;
+    }
+
+    /**
+     * Device time of an action recorded offline (ARCHITECTURE §21: offline timers use the device clock).
+     * Accepted up to a minute in the future (clock skew) and up to 7 days in the past.
+     */
+    public function occurredAt(string $value): Carbon
+    {
+        $at = Carbon::parse($value)->utc();
+        if ($at->greaterThan(now()->addMinute())) {
+            throw ApiException::validation('occurred_at', 'This time is in the future. Check the phone\'s clock.');
+        }
+        if ($at->lessThan(now()->subDays(7))) {
+            throw ApiException::validation('occurred_at', 'Work older than 7 days must be added as a manual entry.');
+        }
+
+        return $at;
+    }
+
+    /** A session started offline must not begin inside work this user already logged. */
+    private function guardNoOverlap(User $user, Carbon $at): void
+    {
+        $lastEnd = WorkLog::query()->where('created_by', $user->id)->whereNotNull('ended_at')->max('ended_at');
+        if ($lastEnd !== null && $at->lessThan(Carbon::parse((string) $lastEnd, 'UTC'))) {
+            throw ApiException::conflict('This session overlaps work already logged. Add it as a manual entry instead.', 'TIMER_OVERLAP');
+        }
+    }
+
+    /** Stop replayed for a session that is already closed (or voided): return it unchanged. */
+    private function alreadyStopped(User $user, ?string $entryId): ?WorkLog
+    {
+        if ($entryId === null) {
+            return null;
+        }
+        /** @var WorkLog|null $log */
+        $log = WorkLog::query()->withoutGlobalScope('not_tombstoned')->whereKey(Uuid::isValid($entryId) ? Uuid::toBytes($entryId) : '')->where('created_by', $user->id)->first();
+        if ($log === null) {
+            throw ApiException::notFound('This timer session does not exist.');
+        }
+
+        return $log->isRunning() && $log->deleted_at === null ? null : $log;
     }
 
     /** @return array{0: Job, 1: JobTask} both locked (job first) */

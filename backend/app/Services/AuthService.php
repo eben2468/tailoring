@@ -152,12 +152,16 @@ final class AuthService
     public function logout(AuthSession $session, RequestContext $context): void
     {
         UserSession::query()->findOrFail($session->id)->revoke('logout');
+        if ($session->deviceId !== null) {
+            DB::table('user_devices')->where('id', $session->deviceId)->update(['fcm_token' => null]); // no pushes to a signed-out phone
+        }
         $this->audit->log($context, 'auth.logout', 'user', $context->user?->id);
     }
 
     public function logoutAll(User $user, RequestContext $context): int
     {
         $count = UserSession::revokeWhere('logout', fn ($q) => $q->where('user_id', $user->id));
+        DB::table('user_devices')->where('user_id', $user->id)->update(['fcm_token' => null]);
         $this->audit->log($context, 'auth.logout_all', 'user', $user->id, ['sessions_revoked' => $count]);
 
         return $count;

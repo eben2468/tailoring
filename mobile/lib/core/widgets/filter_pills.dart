@@ -7,11 +7,14 @@ import '../theme/app_text.dart';
 
 /// Horizontally scrolling filter pills ("All (14) · Active (9) · Pending (3)") — selected in navy.
 class FilterPills extends StatelessWidget {
-  const FilterPills({super.key, required this.labels, required this.selected, required this.onChanged});
+  const FilterPills({super.key, required this.labels, required this.selected, required this.onChanged, this.padding = EdgeInsets.zero});
 
   final List<String> labels;
   final int selected;
   final ValueChanged<int> onChanged;
+
+  /// Inner padding, for rows that scroll edge to edge but start at the screen margin.
+  final EdgeInsetsGeometry padding;
 
   @override
   Widget build(BuildContext context) {
@@ -19,6 +22,7 @@ class FilterPills extends StatelessWidget {
       height: 36,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
+        padding: padding,
         clipBehavior: Clip.none,
         itemCount: labels.length,
         separatorBuilder: (_, _) => const SizedBox(width: AppSpace.sm),
@@ -33,11 +37,7 @@ class FilterPills extends StatelessWidget {
                 duration: AppMotion.fast,
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                 alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: active ? AppColors.primaryContainer : AppColors.surfaceContainerLowest,
-                  borderRadius: AppRadius.full,
-                  boxShadow: AppShadows.card,
-                ),
+                decoration: BoxDecoration(color: active ? AppColors.primaryContainer : AppColors.surfaceContainerLowest, borderRadius: AppRadius.full, boxShadow: AppShadows.card),
                 child: Text(labels[i], style: AppText.labelMd.copyWith(color: active ? AppColors.onPrimary : AppColors.onSurfaceVariant)),
               ),
             ),

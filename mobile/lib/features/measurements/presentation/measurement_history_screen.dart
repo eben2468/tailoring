@@ -17,6 +17,7 @@ import '../../../core/widgets/gap.dart';
 import '../../../core/widgets/state_views.dart';
 import '../../../core/widgets/status_pill.dart';
 import '../../customers/application/customer_providers.dart';
+import '../../sync/application/sync_providers.dart';
 import '../application/measurement_providers.dart';
 import '../domain/measurement.dart';
 import 'measurement_widgets.dart';
@@ -39,7 +40,7 @@ class MeasurementHistoryScreen extends ConsumerWidget {
           const MessageView(icon: Symbols.history, title: 'No measurements yet', message: 'Recorded measurement sets will be listed here.'),
         AsyncData(:final value) => RefreshIndicator(
             edgeOffset: MediaQuery.paddingOf(context).top + 64,
-            onRefresh: () => ref.refresh(measurementHistoryProvider(customerId).future),
+            onRefresh: () => ref.read(syncControllerProvider.notifier).syncNow(),
             child: ListView.separated(
               padding: belowHeader(context),
               itemCount: value.length + 1,
@@ -59,7 +60,7 @@ class MeasurementHistoryScreen extends ConsumerWidget {
               },
             ),
           ),
-        AsyncError(:final error) => ErrorView(error: error, onRetry: () => ref.invalidate(measurementHistoryProvider(customerId))),
+        AsyncError(:final error) => ErrorView(error: error, onRetry: () => ref.invalidate(bootstrapProvider)),
         _ => const LoadingView(),
       },
     );
@@ -94,7 +95,7 @@ class _SetCard extends StatelessWidget {
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
-              Expanded(child: Text(Fmt.dateTime(set.measuredAt), style: AppText.titleSm, overflow: TextOverflow.ellipsis)),
+              Expanded(child: Text(Fmt.dateOrDateTime(set.measuredAt), style: AppText.titleSm, overflow: TextOverflow.ellipsis)),
               if (latest) const StatusPill(label: 'Latest', tone: StatusTone.success),
             ]),
             Text(
@@ -179,7 +180,7 @@ class MeasurementSetScreen extends ConsumerWidget {
             }
 
             return ListView(padding: belowHeader(context), children: [
-              Text(Fmt.dateTime(set.measuredAt), style: AppText.headlineLg),
+              Text(Fmt.dateOrDateTime(set.measuredAt), style: AppText.headlineLg),
               Gap.xs,
               Text(
                 '${set.values.length} values in ${unit.label}${set.recordedBy == null ? '' : ' · recorded by ${set.recordedBy}'}',
@@ -196,7 +197,7 @@ class MeasurementSetScreen extends ConsumerWidget {
               AppButton(label: 'Remove recording', icon: Symbols.delete, variant: AppButtonVariant.danger, expand: true, onPressed: () => _discard(context, ref)),
             ]);
           }(),
-        (AsyncError(:final error), _) || (_, AsyncError(:final error)) => ErrorView(error: error, onRetry: () => ref.invalidate(measurementHistoryProvider(customerId))),
+        (AsyncError(:final error), _) || (_, AsyncError(:final error)) => ErrorView(error: error, onRetry: () => ref.invalidate(bootstrapProvider)),
         _ => const LoadingView(),
       },
     );

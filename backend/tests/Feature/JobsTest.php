@@ -164,7 +164,7 @@ final class JobsTest extends ApiTestCase
         $job = $this->createJob([
             'title' => 'Wedding suit', 'quantity' => 2, 'measurement_set_id' => $setId, 'fabric_note' => 'Navy Super 150s',
             'tasks' => [
-                ['task_type_id' => $ids['cutting'], 'estimated_seconds' => 7200],
+                ['id' => $cutId = (string) \Illuminate\Support\Str::uuid7(), 'task_type_id' => $ids['cutting'], 'estimated_seconds' => 7200], // client id (offline-created jobs)
                 ['task_type_id' => $ids['ready_for_collection'], 'estimated_seconds' => 3600], // milestone hours are ignored
             ],
         ])->assertCreated()
@@ -173,6 +173,7 @@ final class JobsTest extends ApiTestCase
             ->assertJsonPath('data.fabric_note', 'Navy Super 150s')
             ->assertJsonPath('data.hours.estimated_seconds', 7200);
         $this->assertSame(0, $job->json('data.tasks.1.estimated_seconds'));
+        $this->assertSame($cutId, $job->json('data.tasks.0.id'));
     }
 
     public function test_create_job_validation(): void

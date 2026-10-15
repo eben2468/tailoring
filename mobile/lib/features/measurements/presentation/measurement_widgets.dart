@@ -58,12 +58,20 @@ class MeasurementGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
       final columns = constraints.maxWidth > 520 ? 3 : 2;
-      final width = (constraints.maxWidth - AppSpace.sm * (columns - 1)) / columns;
-      return Wrap(
-        spacing: AppSpace.sm,
-        runSpacing: AppSpace.sm,
-        children: [for (final cell in cells) SizedBox(width: width, child: cell)],
-      );
+      // Rows of equal-height cells (a two-line label like "Waist (natural)" no longer makes its cell taller than its neighbour).
+      return Column(children: [
+        for (var start = 0; start < cells.length; start += columns) ...[
+          if (start > 0) const SizedBox(height: AppSpace.sm),
+          IntrinsicHeight(
+            child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              for (var i = start; i < start + columns; i++) ...[
+                if (i > start) const SizedBox(width: AppSpace.sm),
+                Expanded(child: i < cells.length ? cells[i] : const SizedBox.shrink()),
+              ],
+            ]),
+          ),
+        ],
+      ]);
     });
   }
 }

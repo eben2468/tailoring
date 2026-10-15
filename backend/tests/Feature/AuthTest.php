@@ -18,7 +18,7 @@ final class AuthTest extends ApiTestCase
             ->assertJsonPath('message', 'Signed in.')
             ->assertJsonPath('data.token_type', 'Bearer')
             ->assertJsonPath('data.user.role', 'owner')
-            ->assertJsonPath('data.user.permissions', ['business'])
+            ->assertJsonPath('data.user.permissions', ['business', 'alerts'])
             ->assertJsonPath('data.business.name', 'Nutɔfe')
             ->assertJsonPath('data.business.currency', 'GHS')
             ->assertJsonPath('data.business.timezone', 'Africa/Accra')

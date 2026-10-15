@@ -8,16 +8,7 @@ import 'app_card.dart';
 
 /// Icon tile + title/subtitle + trailing — the row pattern from the "Atelier Health & Stock" list.
 class MenuRow extends StatelessWidget {
-  const MenuRow({
-    super.key,
-    required this.icon,
-    required this.title,
-    this.subtitle,
-    this.onTap,
-    this.trailing,
-    this.destructive = false,
-    this.subtitleColor,
-  });
+  const MenuRow({super.key, required this.icon, required this.title, this.subtitle, this.onTap, this.trailing, this.destructive = false, this.subtitleColor});
 
   final IconData icon;
   final String title;
@@ -39,10 +30,7 @@ class MenuRow extends StatelessWidget {
             Container(
               width: 40,
               height: 40,
-              decoration: BoxDecoration(
-                color: destructive ? AppColors.errorContainer : AppColors.surfaceContainerHigh,
-                borderRadius: AppRadius.control,
-              ),
+              decoration: BoxDecoration(color: destructive ? AppColors.errorContainer : AppColors.surfaceContainerHigh, borderRadius: AppRadius.control),
               child: Icon(icon, size: 20, color: destructive ? AppColors.error : AppColors.onSurface),
             ),
             const SizedBox(width: AppSpace.md),
@@ -51,7 +39,11 @@ class MenuRow extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(title, style: AppText.titleSm.copyWith(color: titleColor), overflow: TextOverflow.ellipsis),
+                  Text(
+                    title,
+                    style: AppText.titleSm.copyWith(color: titleColor),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                   if (subtitle != null)
                     Text(
                       subtitle!,
@@ -84,10 +76,7 @@ class MenuGroup extends StatelessWidget {
         borderRadius: AppRadius.card,
         child: Column(
           children: [
-            for (var i = 0; i < children.length; i++) ...[
-              if (i > 0) const Divider(indent: 64),
-              children[i],
-            ],
+            for (var i = 0; i < children.length; i++) ...[if (i > 0) const Divider(indent: 64), children[i]],
           ],
         ),
       ),

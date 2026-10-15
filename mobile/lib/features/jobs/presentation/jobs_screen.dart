@@ -11,10 +11,10 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_text.dart';
 import '../../../core/widgets/app_button.dart';
-import '../../../core/widgets/feedback.dart';
 import '../../../core/widgets/filter_pills.dart';
 import '../../../core/widgets/gap.dart';
 import '../../../core/widgets/state_views.dart';
+import '../../sync/application/sync_providers.dart';
 import '../application/job_providers.dart';
 import 'job_widgets.dart';
 
@@ -41,11 +41,7 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
     _debounce = Timer(const Duration(milliseconds: 300), () => setState(() => _query = JobQuery(filter: _query.filter, text: text.trim())));
   }
 
-  Future<void> _refresh() async {
-    ref.invalidate(jobCountsProvider(null));
-    ref.invalidate(jobListProvider(_query));
-    await ref.read(jobListProvider(_query).future);
-  }
+  Future<void> _refresh() => ref.read(syncControllerProvider.notifier).syncNow();
 
   @override
   Widget build(BuildContext context) {
@@ -103,22 +99,9 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
                 SliverPadding(
                   padding: EdgeInsets.fromLTRB(AppSpace.margin, 0, AppSpace.margin, belowHeaderAboveNav(context).bottom),
                   sliver: SliverList.separated(
-                    itemCount: value.items.length + (value.hasMore ? 1 : 0),
+                    itemCount: value.items.length,
                     separatorBuilder: (_, _) => Gap.md,
                     itemBuilder: (context, i) {
-                      if (i == value.items.length) {
-                        return Center(
-                          child: AppButton(
-                            label: 'Load more',
-                            variant: AppButtonVariant.tonal,
-                            size: AppButtonSize.medium,
-                            loading: value.loadingMore,
-                            onPressed: () => ref.read(jobListProvider(_query).notifier).loadMore().catchError((Object e) {
-                              if (context.mounted) showAppSnack(context, errorMessage(e), isError: true);
-                            }),
-                          ),
-                        );
-                      }
                       final job = value.items[i];
                       return JobCard(job: job, onTap: () => context.push(Routes.job(job.id)));
                     },
@@ -126,7 +109,7 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
                 ),
               ],
             AsyncError(:final error) => [
-                SliverFillRemaining(hasScrollBody: false, child: ErrorView(error: error, onRetry: () => ref.invalidate(jobListProvider(_query)))),
+                SliverFillRemaining(hasScrollBody: false, child: ErrorView(error: error, onRetry: () => ref.invalidate(bootstrapProvider))),
               ],
             _ => [const SliverFillRemaining(hasScrollBody: false, child: LoadingView())],
           },

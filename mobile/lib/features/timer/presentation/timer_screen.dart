@@ -10,16 +10,20 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_text.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../core/widgets/hero_panel.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/feedback.dart';
 import '../../../core/widgets/gap.dart';
+import '../../../core/widgets/header_icon_button.dart';
 import '../../../core/widgets/menu_row.dart';
 import '../../../core/widgets/state_views.dart';
 import '../../../core/widgets/status_pill.dart';
+import '../../calendar/application/calendar_providers.dart';
 import '../../jobs/application/job_providers.dart';
 import '../../jobs/domain/job.dart';
 import '../../jobs/presentation/job_sheets.dart';
+import '../../sync/application/sync_providers.dart';
 import '../application/timer_providers.dart';
 import '../domain/timer.dart';
 import 'timer_widgets.dart';
@@ -40,7 +44,7 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
   final _note = TextEditingController();
   bool _busy = false;
 
-  ActiveTimerController get _timer => ref.read(activeTimerProvider.notifier);
+  TimerActions get _timer => ref.read(timerActionsProvider);
 
   @override
   void dispose() {
@@ -48,29 +52,28 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
     super.dispose();
   }
 
-  Future<T?> _act<T>(Future<T> Function() action, {String? success}) async {
-    if (_busy) return null;
+  Future<bool> _act(Future<Object?> Function() action, {String? success}) async {
+    if (_busy) return false;
     setState(() => _busy = true);
     try {
-      final result = await action();
+      await action();
       if (mounted && success != null) showAppSnack(context, success);
-      return result;
+      return true;
     } on ApiException catch (e) {
       if (mounted) showAppSnack(context, e.message, isError: true);
-      return null;
+      return false;
     } finally {
       if (mounted) setState(() => _busy = false);
     }
   }
 
   Future<void> _pause() async {
-    final result = await _act(() => _timer.stop(note: _note.text), success: 'Paused. Work logged.');
-    if (result != null) _note.clear();
+    if (await _act(() => _timer.stop(note: _note.text), success: 'Paused. Work logged.')) _note.clear();
   }
 
   Future<void> _finish(JobTask task) async {
-    final result = await _act(() => _timer.stop(note: _note.text, complete: true), success: '${task.name} completed. Work logged.');
-    if (result != null && mounted) context.pop();
+    final done = await _act(() => _timer.stop(note: _note.text, complete: true), success: '${task.name} completed. Work logged.');
+    if (done && mounted) context.pop();
   }
 
   Future<void> _start(JobTask task) async {
@@ -118,8 +121,8 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
       ),
     );
     if (picked == null || !mounted) return;
-    final result = await _act(() => _timer.switchTo(picked.id, note: _note.text), success: 'Switched to ${picked.name}.');
-    if (result != null && mounted) {
+    final switched = await _act(() => _timer.switchTo(picked.id, note: _note.text), success: 'Switched to ${picked.name}.');
+    if (switched && mounted) {
       _note.clear();
       context.pushReplacement(Routes.taskTimer(job.id, picked.id));
     }
@@ -133,12 +136,7 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
         if (timer == null) return;
         final reason = await askText(context, title: 'Discard this session?', label: 'Reason', hint: 'e.g. Started by mistake', confirmLabel: 'Discard session', destructive: true);
         if (reason == null) return;
-        await _act(() async {
-          final result = await ref.read(timerApiProvider).voidEntry(timer.entry.id, reason);
-          ref.invalidate(activeTimerProvider);
-          ref.read(jobProvider(widget.jobId).notifier).replace(result.job);
-          return result;
-        }, success: 'Session discarded. It does not count towards the hours.');
+        await _act(() => ref.read(timerApiProvider).voidEntry(timer.entry.id, reason), success: 'Session discarded. It does not count towards the hours.');
     }
   }
 
@@ -153,9 +151,11 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
       actions: [
         PopupMenuButton<String>(
           tooltip: 'More',
-          icon: const Icon(Symbols.more_vert, size: 22, color: AppColors.onSurfaceVariant),
+          padding: EdgeInsets.zero,
+          shape: RoundedRectangleBorder(borderRadius: AppRadius.card),
           onSelected: (a) => _more(a, runningHere ? timer : null),
           itemBuilder: (_) => [const PopupMenuItem(value: 'logs', child: Text('Work log for this stage')), if (runningHere) const PopupMenuItem(value: 'discard', child: Text('Discard this session'))],
+          child: const HeaderIconButton(icon: Symbols.more_vert),
         ),
       ],
       body: switch (jobAsync) {
@@ -163,7 +163,7 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
           final task? => _body(job, task, timer, runningHere),
           null => const MessageView(icon: Symbols.search_off, title: 'Stage not found', message: 'It may have been removed on another device.'),
         },
-        AsyncError(:final error) => ErrorView(error: error, onRetry: () => ref.invalidate(jobProvider(widget.jobId))),
+        AsyncError(:final error) => ErrorView(error: error, onRetry: () => ref.invalidate(bootstrapProvider)),
         _ => const LoadingView(),
       },
     );
@@ -209,7 +209,10 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
                     decoration: InputDecoration(
                       hintText: 'Quick note: e.g. Left sleeve pitched 3mm',
                       hintStyle: AppText.bodyMd.copyWith(color: AppColors.outline),
+                      filled: false,
                       border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
                       counterText: '',
                     ),
                   ),
@@ -222,6 +225,7 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
             child: Text('Saved with the session when you pause, finish or switch.', style: AppText.bodySm.copyWith(color: AppColors.onSurfaceVariant)),
           ),
         ],
+        const _NextUpCard(),
       ],
     );
   }
@@ -319,7 +323,7 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
                   ? null
                   : () async {
                       final done = await _act(() => ref.read(jobProvider(job.id).notifier).setTaskStatus(task, TaskStatus.completed), success: '${task.name} completed.');
-                      if (done != null && mounted) context.pop();
+                      if (done && mounted) context.pop();
                     },
             ),
           ),
@@ -424,9 +428,9 @@ class _ClockCard extends StatelessWidget {
       ),
     );
 
-    return Container(
+    return HeroPanel(
       padding: const EdgeInsets.symmetric(horizontal: AppSpace.lg, vertical: AppSpace.xl),
-      decoration: BoxDecoration(color: AppColors.primaryContainer, borderRadius: AppRadius.card, boxShadow: AppShadows.raised),
+      watermark: Symbols.timer,
       child: Column(
         children: [
           Row(
@@ -609,5 +613,62 @@ class _BudgetCard extends StatelessWidget {
     final h = seconds ~/ 3600;
     final m = (seconds % 3600) ~/ 60;
     return h > 0 ? '${h}h ${m}m' : '${m}m';
+  }
+}
+
+/// "Next up in the salon": the next open appointment (Stitch timer screen).
+class _NextUpCard extends ConsumerWidget {
+  const _NextUpCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final next = ref.watch(nextAppointmentProvider);
+    if (next == null) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpace.lg),
+      child: Material(
+        color: AppColors.surfaceContainerLow,
+        borderRadius: AppRadius.card,
+        child: InkWell(
+          borderRadius: AppRadius.card,
+          onTap: () => context.push(Routes.appointment(next.id)),
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpace.lg),
+            child: Row(children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(color: AppColors.surfaceContainerLowest, borderRadius: AppRadius.control),
+                child: const Icon(Symbols.calendar_month, size: 22, color: AppColors.secondary),
+              ),
+              Gap.md,
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text('NEXT UP IN THE SALON', style: AppText.overline),
+                  Text(
+                    '${next.type.label}${next.customerName == null ? '' : ' with ${next.customerName}'} at ${TimeOfDay.fromDateTime(next.startsAt).format(context)}',
+                    style: AppText.titleSm,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ]),
+              ),
+              Gap.sm,
+              Ticker(
+                builder: (_, now) {
+                  final d = next.startsAt.difference(now);
+                  final label = d.isNegative
+                      ? 'now'
+                      : d.inDays > 0
+                          ? 'in ${d.inDays}d'
+                          : 'in ${d.inHours > 0 ? '${d.inHours}h ' : ''}${d.inMinutes.remainder(60)}m';
+                  return StatusPill(label: label, tone: StatusTone.info, showDot: false);
+                },
+              ),
+            ]),
+          ),
+        ),
+      ),
+    );
   }
 }

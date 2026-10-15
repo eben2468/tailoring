@@ -27,6 +27,7 @@ final class WorkLogRequest extends ApiRequest
             'duration_seconds' => ['required_without:started_at', 'prohibits:started_at,ended_at', 'integer', 'min:60', 'max:86400'],
             'started_at' => ['required_without:duration_seconds', 'date'],
             'ended_at' => ['required_with:started_at', 'date'],
+            'occurred_at' => ['sometimes', 'nullable', 'date', 'prohibits:started_at'], // adjustment queued offline: ends here
             'note' => ['sometimes', 'nullable', 'string', 'max:500'],
         ];
     }

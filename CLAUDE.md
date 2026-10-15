@@ -3,7 +3,7 @@
 Guidance for Claude Code (and humans) working in this repository.
 
 ## Project status
-**Phase: backend API in progress.** The backend is **Laravel 13** (approved 2026-10-08). Done: database, API foundation + auth + customers + measurements + jobs/tasks/templates (87 tests), Flutter groups 1–3 (43 tests, runs on the emulator). Next: group 4 (work timer: backend then screens). Build modules in the order of the user-given plan and do not start the next module while the current one fails tests. Do not start the Flutter app until asked. Decisions in `docs/ARCHITECTURE.md` §20 marked *Proposed* are not approved yet, so do not silently change or pre-empt them.
+**Phase: backend API in progress.** The backend is **Laravel 13** (approved 2026-10-08). Done: database, API foundation + auth + customers + measurements + jobs/tasks/templates + work timer + offline sync + appointments + inventory + tools + reports + notifications + AI proxy + dashboard (140 tests), the AI service in `ai-service/` (15 tests), Flutter groups 1–11 + offline-first data layer + push (98 tests). All planned module groups are built; push to phones works (Firebase project sewing-app-3c3a4; verified on a real phone 2026-10-15). The AI chat uses Gemini (GEMINI_MODEL gemini-3.5-flash, then GEMINI_FALLBACK_MODELS flash-lite when its 20-a-day free quota is used up; key only in ai-service/.env, git-ignored). It may answer app-usage and general tailoring questions (marked as general) but takes workshop figures only from the analytics; live-checked 2026-10-15. Next: the user's review. Firebase files are never committed: google-services.json (app, git-ignored) and the service-account key (server only; dev: backend/storage/firebase/fcm.json, git-ignored). New business tables must be added to the sync tables (SyncService::$tables, Tables.all), the Presenter and LocalOps. Build modules in the order of the user-given plan and do not start the next module while the current one fails tests. Do not start the Flutter app until asked. Decisions in `docs/ARCHITECTURE.md` §20 marked *Proposed* are not approved yet, so do not silently change or pre-empt them.
 
 ## What this is
 **Nutɔfe**: a mobile app for **one men's tailoring business** (Ghana; currency GHS; timezone Africa/Accra). It is **offline-first**: the app works without a connection and syncs (`docs/ARCHITECTURE.md` §21). The **business owner** is the main user; a **system admin** (the developer) has technical access. It manages customers, measurements (with history), jobs, production tasks, work hours and timer, calendar/fittings, inventory, tools & maintenance, reports, notifications, and an AI production assistant.
@@ -23,7 +23,7 @@ Guidance for Claude Code (and humans) working in this repository.
 - `docs/API_DESIGN.md` — REST conventions, envelope, endpoints.
 - `docs/DEVELOPMENT_PLAN.md` — phases, testing, deployment, risks, open questions.
 
-Stack: **Flutter** (Android-first, iOS-ready; Riverpod 3, go_router, dio, hand-written models, drift for offline from group 2) → HTTPS JSON → **PHP 8.3 REST API** (Laravel 13) → **MySQL 8.4**. **AI service** is a separate PHP app (`ai-service/`), reached only through the core API. Its LLM is **Google Gemini (free tier)**: never send customer personal data to it.
+Stack: **Flutter** (Android-first, iOS-ready; Riverpod 3, go_router, dio, hand-written models, `sqlite3` local copy for offline (no drift: no code generation)) → HTTPS JSON → **PHP 8.3 REST API** (Laravel 13) → **MySQL 8.4**. **AI service** is a separate PHP app (`ai-service/`), reached only through the core API. Its LLM is **Google Gemini (free tier)**: never send customer personal data to it.
 
 ## Repository layout (target)
 ```
@@ -68,6 +68,7 @@ docs/  infra/  assets/
 - Unbuilt modules show `ModuleNotReadyView`. Never show fake or hardcoded business data.
 - After UI changes, run `flutter analyze`, `flutter test --exclude-tags golden`, then `flutter test --tags golden --update-goldens`, and compare `test/visual/goldens/*.png` with `design/stitch/*/screen.png`.
 - Screens never call dio directly: screen → controller (Riverpod) → repository → API.
+- Offline-first (`lib/features/sync`): screens read business data only from the local copy (`fromStore` / `presenterProvider`); writes go through `SyncEngine.perform` (online call + pull, or local apply with `LocalOps` + outbox). A new write needs a route in `local_ops.dart` (rules mirroring the Laravel service) and an idempotent API call (client ids). Keep `Presenter` output identical to the Laravel resources.
 - Tokens only in `flutter_secure_storage`. Only the API base URL is configured in the app (via `--dart-define`).
 - Map API errors to typed `AppException`s; show inline field errors, snackbars, or retry states.
 
@@ -77,11 +78,13 @@ docs/  infra/  assets/
 
 ## Commands
 ```bash
-docker compose -f infra/docker-compose.yml up -d --build   # MySQL 8.4 (:3307), PHP 8.3-FPM, Nginx (API on :8080)
+docker compose -f infra/docker-compose.yml up -d --build   # MySQL 8.4 (:3307), PHP 8.3-FPM, Nginx (API on :8080), scheduler (notifications)
 docker exec -w /var/www/backend nutofe-php composer install
 docker exec -w /var/www/backend nutofe-php composer reset-dev   # migrate:fresh + reference + demo seeds (or ./database/scripts/rebuild-dev-db.sh)
 docker exec -w /var/www/backend nutofe-php vendor/bin/phpunit   # MySQL nutofe_test database, ~45 s
 docker exec -w /var/www/backend nutofe-php composer analyse     # Larastan, level 6
+docker run --rm -v "$PWD/ai-service:/app" nutofe-php sh -c "cd /app && vendor/bin/phpunit"   # AI service tests (no DB)
+docker exec -w /var/www/backend nutofe-php php artisan ai:refresh   # insight cards from the AI service (container `ai`)
 docker exec -w /var/www/backend nutofe-php composer lint
 docker exec -w /var/www/backend nutofe-php php artisan route:list --except-vendor
 docker exec -it nutofe-mysql mysql -uroot -proot_dev_only nutofe   # SQL shell (dev credentials only)

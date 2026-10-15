@@ -37,10 +37,21 @@ class StatusPill extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (showDot) ...[
-            Container(width: 6, height: 6, decoration: BoxDecoration(color: tone.dot, shape: BoxShape.circle)),
+            Container(
+              width: 6,
+              height: 6,
+              decoration: BoxDecoration(color: tone.dot, shape: BoxShape.circle),
+            ),
             const SizedBox(width: 5),
           ],
-          Text(uppercase ? label.toUpperCase() : label, style: AppText.labelSm.copyWith(color: tone.foreground, height: 1.2)),
+          Flexible(
+            child: Text(
+              uppercase ? label.toUpperCase() : label,
+              style: AppText.labelSm.copyWith(color: tone.foreground, height: 1.2),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ],
       ),
     );

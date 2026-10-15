@@ -54,6 +54,36 @@ services:
       mysql:
         condition: service_healthy
 
+  # Runs scheduled tasks (notification rules, push outbox) every minute: php artisan schedule:work.
+  scheduler:
+    build: ./php
+    container_name: nutofe-scheduler
+    restart: unless-stopped
+    working_dir: /var/www/backend
+    command: ["php", "artisan", "schedule:work"]
+    volumes:
+      - ../backend:/var/www/backend
+      - nutofe_backend_vendor:/var/www/backend/vendor
+      - ../database:/var/www/database:ro
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  # AI service (ai-service/): internal only, no published port; the core API calls http://ai:8090 with
+  # HMAC-signed requests. Development uses PHP's built-in server; production runs it behind PHP-FPM.
+  ai:
+    build: ./php
+    image: nutofe-php   # the API image (built by the php service); built here only if missing
+    container_name: nutofe-ai
+    restart: unless-stopped
+    working_dir: /var/www/ai-service
+    entrypoint: ["php", "-S", "0.0.0.0:8090", "-t", "public", "public/index.php"]
+    volumes:
+      - ../ai-service:/var/www/ai-service
+    depends_on:
+      mysql:
+        condition: service_healthy
+
   nginx:
     image: nginx:1.27-alpine
     container_name: nutofe-nginx

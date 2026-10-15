@@ -183,12 +183,13 @@ final class TimerTest extends ApiTestCase
 
     public function test_correct_and_void_entries(): void
     {
+        $now = now()->startOfSecond(); // one clock reading: the test must not depend on a second ticking over
         $entry = $this->api('POST', '/tasks/'.$this->task(1).'/work-logs', [
-            'started_at' => now()->subHours(5)->toIso8601String(),
-            'ended_at' => now()->subHours(3)->toIso8601String(),
+            'started_at' => $now->copy()->subHours(5)->toIso8601String(),
+            'ended_at' => $now->copy()->subHours(3)->toIso8601String(),
         ])->json('data.entry');
 
-        $this->api('PATCH', "/work-logs/{$entry['id']}", ['version' => 1, 'ended_at' => now()->subHours(4)->toIso8601String(), 'note' => 'Corrected'])->assertOk()
+        $this->api('PATCH', "/work-logs/{$entry['id']}", ['version' => 1, 'ended_at' => $now->copy()->subHours(4)->toIso8601String(), 'note' => 'Corrected'])->assertOk()
             ->assertJsonPath('data.entry.duration_seconds', 3600)
             ->assertJsonPath('data.entry.version', 2)
             ->assertJsonPath('data.job.tasks.1.actual_seconds', 3600);

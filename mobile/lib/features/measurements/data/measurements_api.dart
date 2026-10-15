@@ -1,40 +1,47 @@
 import 'package:uuid/uuid.dart';
 
-import '../../../core/network/api_client.dart';
+import '../../../core/local/local_store.dart';
+import '../../../core/network/api_exception.dart';
+import '../../sync/data/sync_engine.dart';
 import '../domain/measurement.dart';
 
-/// Measurement configuration, history and recording.
+/// Recording and discarding measurement sets (works offline). Reads come from the local copy.
 class MeasurementsApi {
-  const MeasurementsApi(this._client);
+  const MeasurementsApi(this._sync);
 
-  final ApiClient _client;
+  final SyncEngine _sync;
 
-  Future<List<MeasurementGroup>> fields() async =>
-      (await _client.get('/measurement-fields') as List<dynamic>).cast<Map<String, dynamic>>().map(MeasurementGroup.fromJson).toList();
-
-  Future<CurrentMeasurements> current(String customerId) async =>
-      CurrentMeasurements.fromJson(await _client.get('/customers/$customerId/measurements/current') as Map<String, dynamic>);
-
-  Future<Paged<MeasurementSet>> history(String customerId, {int page = 1}) =>
-      _client.getPaged('/customers/$customerId/measurements', MeasurementSet.fromJson, query: {'page': page, 'per_page': 50});
-
-  Future<MeasurementSet> set(String setId) async => MeasurementSet.fromJson(await _client.get('/measurement-sets/$setId') as Map<String, dynamic>);
-
-  /// Records a new set. The id is generated here so a retry never saves twice.
+  /// Records a new set. The id is generated here so a retry never saves twice; the time is the
+  /// moment it was measured (also when it reaches the server later).
   Future<MeasurementSet> record(
     String customerId, {
     required MeasurementUnit unit,
     required List<MeasurementEntry> entries,
     String? notes,
     String? supersedesSetId,
-  }) async =>
-      MeasurementSet.fromJson(await _client.post('/customers/$customerId/measurements', body: {
-        'id': const Uuid().v7(),
-        'entered_unit': unit.code,
-        'notes': (notes == null || notes.trim().isEmpty) ? null : notes.trim(),
-        'supersedes_set_id': supersedesSetId,
-        'values': entries.map((e) => e.toJson()).toList(),
-      }) as Map<String, dynamic>);
+  }) async {
+    final id = const Uuid().v7();
+    final name = _sync.store.get(Tables.customers, customerId)?['full_name'] ?? 'customer';
+    final body = {
+      'id': id,
+      'entered_unit': unit.code,
+      'notes': (notes == null || notes.trim().isEmpty) ? null : notes.trim(),
+      'supersedes_set_id': supersedesSetId,
+      'values': entries.map((e) => e.toJson()).toList(),
+    };
+    await _sync.perform(
+      label: 'Measurements for $name',
+      method: 'POST',
+      path: '/customers/$customerId/measurements',
+      body: body,
+      // Queued offline: keep the moment it was measured (online the server's clock is used).
+      queuedBody: {...body, 'measured_at': DateTime.now().toUtc().toIso8601String()},
+    );
+    final row = _sync.store.get(Tables.measurementSets, id);
+    final presenter = _sync.presenter();
+    if (row == null || presenter == null) throw const NotFoundException('The measurements were saved but are not on this phone yet. Pull to refresh.');
+    return MeasurementSet.fromJson(presenter.measurementSet(row));
+  }
 
-  Future<void> discard(String setId) => _client.delete('/measurement-sets/$setId');
+  Future<void> discard(String setId) => _sync.perform(label: 'Remove a measurement record', method: 'DELETE', path: '/measurement-sets/$setId');
 }

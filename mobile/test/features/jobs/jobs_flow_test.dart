@@ -43,7 +43,7 @@ void main() {
 
   setUp(() {
     backend = FakeBackend();
-    kofi = backend.addCustomer('Kofi Mensah', phone: '+233241110001', sets: 1)['id'] as String;
+    kofi = backend.addCustomer('Kofi Mensah', phone: '+233241110001')['id'] as String;
     backend.addCustomer('Ama Owusu', phone: '+233201110002');
     tokens = MemoryTokenStore()
       ..access = 'nat_1'
@@ -96,11 +96,11 @@ void main() {
 
     expect(find.text('Kofi Mensah'), findsWidgets);
     expect(find.text('PRODUCTION STATUS'), findsOneWidget);
-    expect(find.text('Finishing & Buttonholes'), findsWidgets);
 
     expect(find.text('Start Work Timer (Finishing)'), findsOneWidget);
     await scrollTo(tester, find.text('Hand-sew lapels'));
     expect(find.text('Active Subtasks'), findsOneWidget);
+    expect(find.text('Finishing & Buttonholes'), findsWidgets);
     await tester.tap(find.text('Hand-sew lapels'));
     await tester.pumpAndSettle();
     expect(backend.requests.where((r) => r.startsWith('PATCH') && r.contains('/checklist-items/')), hasLength(1));
@@ -118,7 +118,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Mark collected'));
     await tester.pumpAndSettle();
-    expect(job['status'], 'completed');
+    expect(backend.jobs.jobs.firstWhere((j) => j['id'] == job['id'])['status'], 'completed');
     expect(find.text('Mark Collected'), findsNothing); // collected jobs are read-only
   });
 
@@ -173,7 +173,7 @@ void main() {
     await tester.tap(find.text('Commissions'));
     await tester.pumpAndSettle();
 
-    expect(find.text('New Commission'), findsOneWidget);
+    expect(find.text('New Commission for Kofi'), findsOneWidget); // permanent bottom button
     await scrollTo(tester, find.textContaining('JOB #024'));
     expect(find.textContaining('JOB #024'), findsOneWidget);
     expect(find.text('Cutting Stage'), findsOneWidget);

@@ -65,16 +65,17 @@ void main() {
       ..refresh = 'nrt_1'
       ..session = {'user': userJson(name: 'Marcus Owusu'), 'business': businessJson};
     backend = FakeBackend();
-    final kofi = backend.addCustomer('Kofi Mensah', phone: '+233241110001', sets: 2, activeJobs: 1);
-    kofi['address'] = 'East Legon, Accra';
-    kofi['summary'] = {'active_jobs': 1, 'completed_jobs': 4, 'measurement_sets': 2, 'last_measured_at': '2026-10-04T09:00:00.000Z'};
+    final kofi = backend.addCustomer('Kofi Mensah', phone: '+233241110001', address: 'East Legon, Accra');
+    final kwame = backend.addCustomer('Kwame Asante', phone: '+233271110003')['id'] as String;
     backend
       ..addCustomer('Ama Owusu', phone: '+233201110002')
-      ..addCustomer('Kwame Asante', phone: '+233271110003', sets: 1)
       ..addCustomer('Yaa Kɔkɔ Boateng', phone: '+233551110004')
       ..addSet(kofi['id'] as String, {3: 106.68, 4: 87.63}, at: DateTime.utc(2026, 9, 1))
       ..addSet(kofi['id'] as String, {4: 86.995}, at: DateTime.utc(2026, 10, 4), texts: {20: 'Low right'}, notes: 'Erect posture, right shoulder ~0.5in low; athletic taper to the waist.');
-    backend.customers[2]['summary'] = {'active_jobs': 0, 'completed_jobs': 1, 'measurement_sets': 1, 'last_measured_at': '2026-08-20T09:00:00.000Z'};
+    backend
+      ..addSet(kwame, {3: 101.6}, at: DateTime.utc(2026, 8, 20))
+      ..jobs.addJob(kofi['id'] as String, dueInDays: 6, done: 2)
+      ..jobs.addJob(kwame, status: 'completed', done: 4);
   });
 
   testWidgets('customers list', (tester) async {

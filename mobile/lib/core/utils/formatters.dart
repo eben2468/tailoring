@@ -10,6 +10,9 @@ abstract final class Fmt {
 
   static String date(DateTime value) => _date.format(value);
 
+  /// "4 Oct 2026" for date-only values (stored at midnight), else "4 Oct 2026, 14:30".
+  static String dateOrDateTime(DateTime value) => value.hour == 0 && value.minute == 0 ? _date.format(value) : _dateTime.format(value);
+
   /// "Oct 4" this year, otherwise "Oct 2024".
   static String shortDate(DateTime value, {DateTime? now}) =>
       value.year == (now ?? DateTime.now()).year ? DateFormat('MMM d').format(value) : DateFormat('MMM yyyy').format(value);
@@ -38,6 +41,18 @@ abstract final class Fmt {
     if (day == today) return 'Today ${_time.format(value)}';
     if (day == today.subtract(const Duration(days: 1))) return 'Yesterday ${_time.format(value)}';
     return _dateTime.format(value);
+  }
+
+  /// A past day, for date-only values: "today", "yesterday", "4 days ago", or "on 4 Oct 2026" after a month.
+  static String daysAgo(DateTime value, {DateTime? now}) {
+    final reference = now ?? DateTime.now();
+    final days = DateTime(reference.year, reference.month, reference.day).difference(DateTime(value.year, value.month, value.day)).inDays;
+    return switch (days) {
+      <= 0 => 'today',
+      1 => 'yesterday',
+      < 30 => '$days days ago',
+      _ => 'on ${_date.format(value)}',
+    };
   }
 
   /// Seconds as decimal hours: 37800 → "10.5". Hours are always shown with one decimal (tabular).

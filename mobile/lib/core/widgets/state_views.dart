@@ -20,10 +20,7 @@ class LoadingView extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           const SizedBox(width: 28, height: 28, child: CircularProgressIndicator(strokeWidth: 3, strokeCap: StrokeCap.round)),
-          if (label != null) ...[
-            const SizedBox(height: AppSpace.md),
-            Text(label!, style: AppText.bodyMd.copyWith(color: AppColors.onSurfaceVariant)),
-          ],
+          if (label != null) ...[const SizedBox(height: AppSpace.md), Text(label!, style: AppText.bodyMd.copyWith(color: AppColors.onSurfaceVariant))],
         ],
       ),
     );
@@ -72,14 +69,22 @@ class MessageView extends StatelessWidget {
               const SizedBox(height: AppSpace.lg),
               Text(title, style: AppText.headlineMd, textAlign: TextAlign.center),
               const SizedBox(height: AppSpace.xs + 2),
-              Text(message, style: AppText.bodyMd.copyWith(color: AppColors.onSurfaceVariant), textAlign: TextAlign.center),
+              Text(
+                message,
+                style: AppText.bodyMd.copyWith(color: AppColors.onSurfaceVariant),
+                textAlign: TextAlign.center,
+              ),
               if (actionLabel != null && onAction != null) ...[
                 const SizedBox(height: AppSpace.lg),
                 AppButton(label: actionLabel!, onPressed: onAction, variant: AppButtonVariant.tonal, size: AppButtonSize.medium),
               ],
               if (footnote != null) ...[
                 const SizedBox(height: AppSpace.md),
-                Text(footnote!, style: AppText.bodySm.copyWith(color: AppColors.outline), textAlign: TextAlign.center),
+                Text(
+                  footnote!,
+                  style: AppText.bodySm.copyWith(color: AppColors.outline),
+                  textAlign: TextAlign.center,
+                ),
               ],
             ],
           ),
@@ -122,3 +127,29 @@ class ErrorView extends StatelessWidget {
 
 /// Friendly sentence for an error in a snackbar.
 String errorMessage(Object error) => error is ApiException ? error.message : 'Something went wrong. Please try again.';
+
+/// Empty state inside a card section ("No fitting booked yet."): a small icon in a soft circle and one line.
+class InlineEmpty extends StatelessWidget {
+  const InlineEmpty({super.key, required this.icon, required this.message});
+
+  final IconData icon;
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 32,
+          height: 32,
+          decoration: const BoxDecoration(color: AppColors.surfaceContainer, shape: BoxShape.circle),
+          child: Icon(icon, size: 17, color: AppColors.outline),
+        ),
+        const SizedBox(width: AppSpace.sm + 2),
+        Expanded(
+          child: Text(message, style: AppText.bodySm.copyWith(color: AppColors.onSurfaceVariant)),
+        ),
+      ],
+    );
+  }
+}

@@ -402,7 +402,230 @@ Timer calls return:
 | `PATCH /work-logs/{id}` | `{"version", "started_at"?, "ended_at"?, "note"?}` | Correct an entry (audit-logged with before/after). Times of a running timer cannot change (`409 TIMER_RUNNING`). → `{entry, job}` |
 | `POST /work-logs/{id}/void` | `{"reason"}` | Voids (also discards a running session). → `{entry, job}` |
 
-## 11. CLI (server only)
+### Calls replayed after working offline
+- `POST /tasks/{id}/timer/start`, `POST /timers/stop`, `POST /timers/switch` and adjustments (`POST /tasks/{id}/work-logs` with `duration_seconds`) accept `occurred_at` (ISO-8601): the device time of an action recorded without a connection. It must not be in the future (1 minute tolerance) or older than 7 days (`422`). A session started offline must not begin inside work already logged by the same user (`409 TIMER_OVERLAP`).
+- `POST /timers/stop` accepts `entry_id`: the session being stopped. If that session is already closed or voided (a replay), the call succeeds without changes. An unknown id → `404`.
+- `POST /timers/switch` with an `id` that already exists returns that session (replay).
+- `POST /jobs` accepts `tasks.*.id` (client UUIDs for the stages), so a job created offline keeps the same stage ids.
+
+## 11. Appointments 🔒 `business`
+
+Fittings, consultations, measurement sessions, collections, deliveries. **The calendar itself is built on the device** from synced appointments, planned stage blocks (`job_tasks.scheduled_start/end`, set with `PATCH /tasks/{id}`) and job dates (`due_date`, `collection_date`), so it works offline; there is no server calendar feed. Times are ISO-8601; the client id makes a create idempotent.
+
+```json
+{ "id": "…", "appointment_type": "fitting", "title": "Baste fitting", "customer_id": "…", "customer_name": "Kofi Mensah",
+  "job_id": "…", "job_number": "024", "job_task_id": "… (the job's fitting stage)", "starts_at": "…", "ends_at": "…",
+  "location": "Fitting Room 1", "status": "scheduled", "reminder_minutes_before": 60, "notes": null, "version": 1, "created_at": "…", "updated_at": "…" }
+```
+
+| Call | Body / query | Notes |
+|---|---|---|
+| `GET /appointments` | `from`, `to` (overlapping the range), `customer_id`, `job_id`, `type`, paging | By start time. |
+| `POST /appointments` | `{"id"?, "appointment_type", "title", "customer_id"?, "job_id"?, "job_task_id"?, "starts_at", "ends_at", "location"?, "reminder_minutes_before"?, "notes"?, "status"?: scheduled\|confirmed, "allow_overlap"?}` | Types: fitting, consultation, measurement, collection, delivery, other. A job without a customer fills in the job's customer. `422`: end not after start, longer than 12 h, job of another customer, stage of another job. **Overlap** with another scheduled/confirmed appointment → `409 SCHEDULE_CONFLICT` ("This overlaps "Baste fitting" with Kofi Mensah (10:00–11:00).") unless `allow_overlap: true`. |
+| `GET /appointments/{id}` · `PATCH /appointments/{id}` | PATCH: any create field + required `version` | `409 CONFLICT_VERSION`; finished appointments are read-only (`409 APPOINTMENT_CLOSED`). |
+| `POST /appointments/{id}/status` | `{"status"}` | scheduled ⇄ confirmed → completed \| cancelled \| no_show (final). Same status again = no change. Otherwise `409 INVALID_STATUS_TRANSITION`. |
+| `DELETE /appointments/{id}` | | For appointments booked by mistake (tombstone, audit-logged). Otherwise cancel. |
+
+Appointments are part of `/sync/pull` (`changes.appointments`), and `/sync/config` settings include `schedule.working_hours` and `schedule.capacity_hours_per_day` (the calendar's bench load = planned stage hours ÷ capacity × open days).
+
+## 12. Inventory 🔒 `business`
+
+Materials and their stock ledger. **Stock is never stored:** it is the sum of the non-voided transactions (`v_inventory_stock`). Every write locks the material row.
+
+```json
+{ "id": "…", "category_id": 1, "category_name": "Fabric", "item_name": "Super 150s Wool — Navy", "sku": "FAB-0001", "description": null,
+  "unit": "m", "min_stock_level": 5.0, "reorder_quantity": 25.0, "unit_cost": 145.0, "supplier_name": null, "supplier_contact": null,
+  "storage_location": "Rack B-04", "notes": null, "quantity_on_hand": 18.5, "stock_status": "ok", "last_transaction_at": "…",
+  "jobs_used_this_month": 1, "archived_at": null, "version": 1, "created_at": "…", "updated_at": "…" }
+```
+`stock_status`: `negative` (< 0) → `out` (≤ 0) → `low` (≤ minimum) → `ok`. `jobs_used_this_month`: distinct jobs with usage this calendar month (business timezone).
+
+| Call | Body / query | Notes |
+|---|---|---|
+| `GET /inventory/summary` | | `{total_items, category_count, low_stock, out_of_stock, negative, stock_value, valued_items, by_category:[{category_id, items}], alerts:[items: negative, then out, then low]}` for active materials. `stock_value` = Σ max(on hand, 0) × unit cost. |
+| `GET /inventory/items` | `q` (name, code, description), `category_id`, `stock`: ok\|low\|out\|negative\|attention, `archived`: 0\|1, paging | By name. Archived materials only with `archived=1`. |
+| `POST /inventory/items` | `{"id"?, "category_id", "item_name", "unit", "sku"?, "description"?, "min_stock_level"?, "reorder_quantity"?, "unit_cost"?, "supplier_name"?, "supplier_contact"?, "storage_location"?, "notes"?, "opening_quantity"?, "opening_transaction_id"?, "occurred_at"?}` | Units: m, yd, cm, pcs, spool, cone, roll, set, box, pack, kg, g; count units take whole numbers. `opening_quantity` > 0 records an `opening` transaction. `422`: inactive category, code (`sku`) already used. Same `id` again → `200` "Material already exists." |
+| `GET /inventory/items/{id}` · `PATCH /inventory/items/{id}` | PATCH: changed fields + required `version` | `409 CONFLICT_VERSION`. The unit cannot change once stock is recorded (`422`). |
+| `POST /inventory/items/{id}/archive` · `/unarchive` | | Archived materials keep their history but take no transactions (`409 ITEM_ARCHIVED`). Repeating is a no-op. |
+| `GET /inventory/items/{id}/transactions` | paging | The ledger, newest first, **voided lines included** (`is_voided`, `void_reason`). |
+| `POST /inventory/items/{id}/transactions` | `{"id"?, "transaction_type": purchase\|return\|usage\|write_off\|adjustment, "quantity" (> 0) \| "counted_quantity" (adjustment, ≥ 0), "job_id"? (usage/return), "unit_cost"? (purchase), "reference"?, "note"?, "occurred_at"?, "offline"?}` | `quantity_change` is signed by type. A stock count records counted − on hand (`422` if equal). **Online, stock may not go below zero:** `422 INSUFFICIENT_STOCK` with the message on `quantity` ("Only 3 spools in stock. If the shelf holds more, record a stock count first."). With `offline: true` (a change recorded without a connection) it is accepted and audit-logged (`inventory.negative_stock`). `occurred_at`: not in the future, at most a year back. Same `id` again → `200` "Already recorded." |
+| `POST /inventory/transactions/{id}/void` | `{"reason", "offline"?}` | The line stays in the ledger but no longer counts. Voiding an addition that would leave negative stock → `422 INSUFFICIENT_STOCK` (unless offline). Voiding again is a no-op. Audit-logged. |
+| `GET /jobs/{id}/materials` | | Usage and returns linked to the job (with `item_name`, `unit`), oldest first. |
+| `GET /inventory/categories` | | All categories (inactive too) with `item_count` of active materials. |
+| `POST /inventory/categories` · `PATCH /inventory/categories/{id}` | `{"category_name", "sort_order"?}` · PATCH also `"is_active"` | Configuration: bumps `config_version`. Unique names. Hidden categories keep their materials. |
+
+Materials and transactions are part of `/sync/pull` (`changes.inventory_items`, `changes.inventory_transactions`: `id, item_id, transaction_type, quantity_change, job_id, unit_cost, reference, note, occurred_at, void_reason, created_by, recorded_by, version, created_at, deleted_at`), and `/sync/config` includes `inventory_categories: [{id, name, sort_order, is_active}]`.
+
+## 13. Tools & equipment 🔒 `business`
+
+Tools, machines and their maintenance history. **Last and next service dates are never stored:** they come from `v_tool_maintenance_status`. Dates are business dates (`Y-m-d`, business timezone).
+
+```json
+{ "id": "…", "category_id": 1, "category_name": "Sewing Machines", "tool_name": "Lockstitch Machine #01", "brand_model": "Juki DDL-9000C",
+  "serial_number": "JK-90001", "purchase_date": "2024-04-22", "tool_condition": "excellent", "operational_status": "operational",
+  "storage_location": "Bench 01", "maintenance_interval_days": 60, "next_maintenance_override": null, "notes": null,
+  "last_maintenance_date": "2026-09-25", "maintenance_count": 2, "next_maintenance_date": "2026-11-24",
+  "maintenance_state": "ok", "days_until_due": 46, "archived_at": null, "version": 3, "created_at": "…", "updated_at": "…" }
+```
+- `next_maintenance_date` = `next_maintenance_override`, else (last service, else purchase date, else the date it was added) + `maintenance_interval_days`; null without a cycle.
+- `maintenance_state`: `none` (no cycle, or retired) → `overdue` (before today) → `due_soon` (within `tools.maintenance_due_soon_days`, default 7, today included) → `ok`. `days_until_due` is negative when overdue.
+- Conditions: excellent, good, fair, poor. Statuses: operational, needs_service, out_of_service, retired.
+
+| Call | Body / query | Notes |
+|---|---|---|
+| `GET /tools/summary` | | `{total_tools, operational, needs_service, out_of_service, retired, due_soon, overdue, by_category:[{category_id, tools}], alerts:[tools: overdue → out of service → needs service → due soon, then by next date]}` for active tools. |
+| `GET /tools` | `q` (name, brand/model, serial, location), `category_id`, `status`, `due`: soon\|overdue\|attention, `archived`: 0\|1, paging | By name. |
+| `POST /tools` | `{"id"?, "category_id", "tool_name", "brand_model"?, "serial_number"?, "purchase_date"?, "tool_condition"?, "operational_status"?, "storage_location"?, "maintenance_interval_days"? (1–3650), "notes"?}` | `422`: inactive category, purchase date in the future. Same `id` again → `200` "Tool already exists." |
+| `GET /tools/{id}` · `PATCH /tools/{id}` | PATCH: changed fields + required `version`; also `next_maintenance_override` (a manual next date, not in the past; null clears it) | `409 CONFLICT_VERSION`. |
+| `POST /tools/{id}/archive` · `/unarchive` | | Archived tools keep their history but take no maintenance (`409 TOOL_ARCHIVED`). Repeating is a no-op. |
+| `GET /tools/{id}/maintenance` | paging | History, newest first: `{id, tool_id, performed_on, maintenance_type, description, performed_by, condition_after, recorded_by, version, created_at}`. |
+| `POST /tools/{id}/maintenance` | `{"id"?, "maintenance_type": routine\|repair\|calibration\|inspection\|sharpening\|cleaning\|other, "performed_on"? (default today, not in the future), "description"?, "performed_by"?, "condition_after"?, "operational_status"?}` | Clears the manual next date; `condition_after` and `operational_status` update the tool. Returns `{log, tool}`. Same `id` again → `200` "Already logged." Audit-logged. |
+| `DELETE /tool-maintenance/{id}` | | Removes an entry made by mistake (tombstone, audit-logged); the dates follow from the other entries. Repeating is a no-op. |
+| `GET /tool-categories` · `POST` · `PATCH /tool-categories/{id}` | as inventory categories | Configuration: bumps `config_version`. |
+
+Tools and maintenance logs are part of `/sync/pull` (`changes.tools`, `changes.tool_maintenance_logs`), and `/sync/config` includes `tool_categories` and the setting `tools.maintenance_due_soon_days`. The app's calendar shows service due dates with the job deadlines.
+
+## 14. Reports 🔒 `business`
+
+Read-only, **calculated on the server** from the business tables and views (nothing is stored). The app keeps the last result of each report and range so it can show it offline (marked with its time).
+
+Query for every report: `from`, `to` (`Y-m-d` business dates, inclusive; default the last 30 days up to today; at most 2 years; `from` after `to` → `422`), `group_by` (`day|week|month`; default day up to 31 days, week up to 186, else month; weeks start on Monday). Every response starts with `period: {from, to, group_by, days}` and has a `series` with one row per bucket (`period` = its first day), empty buckets included.
+
+| Call | Extra query | Content |
+|---|---|---|
+| `GET /reports/jobs` | `job_type_id` | `totals {created, completed, cancelled, on_time, late, on_time_rate, average_days_vs_due, average_lead_days, garments_completed}`, `now {open, queued, in_progress, on_hold, ready_for_collection, overdue}`, `by_job_type [{job_type_id, name, created, completed, on_time, late}]`, `series [{created, completed}]` |
+| `GET /reports/hours` | `job_type_id`, `task_type_id` | Completed jobs: `totals {jobs, garments, estimated_seconds, actual_seconds, variance_seconds, variance_percent, actual_seconds_per_garment, logged_seconds}`, `by_job_type [...]`, `by_stage [{task_type_id, name, tasks, estimated_seconds, actual_seconds, variance_seconds, variance_percent}]`, `series [{logged_seconds}]` |
+| `GET /reports/workload` | | `totals {capacity_seconds, planned_seconds, logged_seconds, load_percent, capacity_hours_per_day}`, `backlog {jobs, remaining_seconds, due_in_period_seconds}`, `series [{capacity_seconds, planned_seconds, logged_seconds, load_percent}]` |
+| `GET /reports/customers` | | `totals {customers, new_customers, ordering_customers, returning_customers, first_time_customers, active_customers}`, `top_customers [{customer_id, name, jobs, completed}]` (10), `series [{new_customers}]` |
+| `GET /reports/inventory` | | `now {materials, ok, low, out, negative, stock_value}`, `attention [{item_id, item_name, unit, min_stock_level, quantity_on_hand, stock_status}]`, `totals {usage_entries, purchase_entries, write_off_entries, used_value}`, `consumption [{item_id, item_name, category_name, unit, used, returned, net_used, purchased, written_off, adjusted, used_value}]`, `by_category [{category_name, materials, used_value}]`, `series [{usage_entries, purchase_entries}]` |
+| `GET /reports/tools` | | `now {tools, operational, needs_service, out_of_service}`, `overdue`, `due_soon`, `not_working` (each `[{tool_id, tool_name, operational_status, next_maintenance_date, days_until_due}]`), `totals {services}`, `by_type [{maintenance_type, services}]`, `by_tool [{tool_id, tool_name, services, last_service}]`, `series [{services}]` |
+
+Definitions: **created** = jobs ordered in the period (order date), drafts excluded. **Completed** = `completed_at` in the period. **On time** = completed on or before the due date. **Days vs due** = completion date − due date (negative = early). **Lead time** = completion date − order date. **Estimate accuracy** uses completed jobs (all their non-skipped stages): variance = actual − estimated, variance % = variance ÷ estimated. **Logged** = closed, non-voided work logs by the date they started. **Capacity** = `schedule.capacity_hours_per_day` on each open day of `schedule.working_hours`; **planned** = stage blocks (`scheduled_start/end`) of jobs in the workshop. **Returning** customers ordered in the period and had ordered before it. **Used value** = (used − returned) × unit cost, for materials with a cost.
+
+## 15. Notifications and push 🔒 signed in (own data only)
+
+Each user sees only their own notifications. They also reach the phone with `/sync/pull` (`changes.notifications`, filtered to the signed-in user).
+
+```json
+{ "id": 42, "notification_type": "low_stock", "severity": "warning", "title": "Low stock: Silk Basting Thread",
+  "body": "3 spools left (minimum 10 spools).", "entity_type": "inventory_item", "entity_id": "…", "route": "/inventory/…",
+  "read_at": null, "created_at": "…" }
+```
+
+| Call | Body / query | Notes |
+|---|---|---|
+| `GET /notifications` | `unread`: 0\|1, paging | Newest first. |
+| `GET /notifications/unread-count` | | `{unread}` for the bell. |
+| `POST /notifications/{id}/read` | | Repeating is a no-op. Someone else's (or unknown) id → `404`. |
+| `POST /notifications/read-all` | | `{marked}`. |
+| `PUT /devices/current/push-token` | `{"fcm_token"}` | The Firebase token of the phone this session signed in from (sent at login as `device_id`); a token moves away from any other device. No device → `409 NO_DEVICE`. Sign-out (`/auth/logout`, `/auth/logout-all`) clears the token. |
+| `DELETE /devices/current/push-token` | | Stop pushes to this phone. |
+
+**Who is notified:** business alerts go to every active user with the `alerts` permission (the owner role; the developer's admin account is not notified). A forgotten-timer alert goes to the person who started the timer.
+
+**Rules** (`NotificationRules`; each alerts once per dedupe key):
+
+| Type | Severity | When | Once per |
+|---|---|---|---|
+| `low_stock`, `out_of_stock`, `negative_stock` | warning, critical, critical | after every stock change, and daily | material, status, day |
+| `job_due_tomorrow`, `job_due_today`, `job_overdue` | info, warning, critical | daily, for jobs in production | job and due date (overdue: each day) |
+| `maintenance_due`, `maintenance_overdue` | warning, critical | daily (due within `tools.maintenance_due_soon_days`) | tool and next date (overdue: each week) |
+| `appointment_reminder` | info | every minute, from `reminder_minutes_before` until the start | appointment and start time |
+| `timer_long_running` | warning | every 15 minutes, after `timer.long_running_alert_hours` (default 4) | work log |
+
+The daily rules run once `notifications.digest_time` (default 07:00, business time) has passed. Schedule: `routes/console.php`, run by the `scheduler` container (`php artisan schedule:work`). By hand: `php artisan notifications:run daily|reminders|timers|all [--force]`.
+
+**Push** (outbox): `php artisan notifications:push` (every minute) sends pending notifications through Firebase Cloud Messaging HTTP v1 to the user's devices. Statuses: `sent`; `skipped` (push not configured, or no device with a token); `pending` again with back-off of 2^attempts minutes; `failed` after 5 attempts. A token Firebase rejects is removed from its device. Configure with `FCM_CREDENTIALS=/path/outside/the/repo/service-account.json` in `backend/.env`; without it, notifications are in-app only. Push payload `data`: `notification_id`, `type`, `route`.
+
+## 16. AI assistant 🔒 `business`
+
+Proxied by the core API to the internal **AI service** (`ai-service/`, ARCHITECTURE §14). If the service is down, not set up, or switched off (`ai.enabled`), the call answers `503 AI_UNAVAILABLE` and nothing else is affected. The AI never changes business data: it proposes, the owner acts.
+
+| Call | Body / query | Answer |
+|---|---|---|
+| `GET /ai/overview` | | `{completed_jobs, accuracy {stages, accuracy_percent, within_10_percent, bias_percent, by_stage[]}, workload {from, to, capacity_seconds, demand_seconds, backlog_seconds, free_seconds, utilization_percent, jobs_due, state: light\|optimal\|full\|overbooked\|closed}, risks[], queue[] (top 5), stock[] (runs out within 30 days), llm {enabled, name}}` |
+| `GET /jobs/{id}/ai/forecast` | | `{job_number, job_type, position, remaining_seconds, hours_ahead_seconds, finish_date, due_date, days_late, slack_days, risk: none\|low\|medium\|high, risk_score, reasons[]}`, or `null` when the job is not in production. |
+| `POST /ai/estimate` | `{"job_type_id", "quantity"?}` | Per work stage of the garment template: `{task_type_id, name, suggested_seconds, default_seconds, basis: history\|defaults, sample_size, confidence, explanation}`. A suggestion for the job form; nothing is saved. |
+| `POST /ai/chat` | `{"messages": [{"role": "user"\|"assistant", "text"}]}` (1–8, the last is the question) | `{answer, source: "analytics" \| "gemini-<model>", job_numbers[]}`. Rate limit 10 per minute per user. |
+| `POST /ai/insights/{id}/seen` · `/dismiss` · `/applied` | | `{id, insight_status}`. Status only moves forward (new → seen → applied \| dismissed); expired stays expired. Unknown id → `404`. |
+
+**Insight cards** (`ai_insights`) reach the app with `/sync/pull` (`changes.ai_insights`: `id, insight_type, severity, title, body, payload, entity_type, entity_id, insight_status, generated_at, expires_at, updated_at`; `payload.action` = `{type: open_job\|restock\|open_calendar\|open_templates, label, …}`). `php artisan ai:refresh` (every 2 hours) asks the AI service for the current cards, stores new ones once per `(insight_type, inputs_hash)`, expires cards whose situation no longer holds, and notifies the owner of new warning/critical cards (`ai_insight`).
+
+**How the figures are made** (deterministic, no language model):
+- **Estimate:** median actual hours per garment of the same stage on completed jobs of the same garment type, × quantity, rounded to 15 min; needs `ai.min_samples_for_estimate` samples (default 3), otherwise the template hours are kept. Confidence grows with samples and drops with spread.
+- **Forecast:** jobs in production (on hold left out), started first, then priority, due date, order date; their remaining hours are laid on the bench capacity (`schedule.*`), starting with what is left of today. **Risk:** high = finishes after the due date; medium = on the due date or less than one open day spare; low otherwise.
+- **Accuracy:** completed stages with an estimate: 100 − mean |actual − estimate| ÷ estimate; share within ±10 %; bias per stage.
+- **Workload:** the next 7 days' capacity against the remaining hours of jobs due by then (or overdue).
+- **Stock:** usage per day over 60 days (at least 14) → days until it runs out.
+
+**Language model (Gemini):** used only for the chat, through function calling over the analytics above (`work_queue`, `delay_risks`, `job`, `workload`, `stock_forecast`, `estimate_accuracy`). **No personal data is sent:** the tools return job numbers, garment types, hours and dates only (no customer names, phones, titles or notes). Without `GEMINI_API_KEY` (or when the daily cap or quota is reached) the chat answers the common questions from the figures (`source: "analytics"`).
+
+## 17. Dashboard 🔒 `business`
+
+### `GET /dashboard`
+The whole dashboard in one call, calculated from the business tables (nothing stored). The app builds the same object from its local copy (`Presenter.dashboard`) so the screen works offline; a live test checks that both agree.
+
+```json
+{
+  "date": "2026-10-09",
+  "shop": {"is_open": true, "opens_at": "08:00", "closes_at": "18:00"},
+  "counts": {"open": 5, "active": 3, "at_fitting": 1, "queued": 1, "ready_for_collection": 0,
+             "due_today": 1, "overdue": 1, "most_days_late": 2, "due_this_week": 1},
+  "appointments_today": {"total": 1, "fittings": 1, "collections": 0},
+  "workload": {"remaining_seconds": 23400, "capacity_seconds": 28800,
+               "by_stage": [{"task_type_id": 2, "name": "Cutting", "color_key": "blue", "remaining_seconds": 10800}]},
+  "schedule": [{"kind": "timer", "starts_at": "2026-10-09T10:00:00.000Z", "ends_at": null, "title": "Fabric Cutting",
+                "job_id": "…", "job_number": "024", "job_title": "3-Piece Suit", "customer_name": "Kofi Mensah",
+                "task_id": "…", "appointment_id": null, "appointment_type": null, "location": null,
+                "estimated_seconds": 10800, "remaining_seconds": 10800}],
+  "priority_jobs": [/* JobResource (list shape), up to 3 */],
+  "inventory_alert_count": 1, "inventory_alerts": [/* InventoryItemResource, up to 3 */],
+  "maintenance_alert_count": 1, "maintenance_alerts": [/* ToolResource, up to 3 */],
+  "insights": [/* open ai_insights rows (as in the sync), up to 3 */]
+}
+```
+
+Rules (business timezone):
+- **shop:** today's entry of `schedule.working_hours`; open from `opens_at` until (not including) `closes_at`. Closed days have `null` hours.
+- **counts:**
+  - `open` = draft, queued, in progress, on hold or ready.
+  - `active` = in progress + on hold.
+  - `at_fitting` = active jobs whose current stage is a fitting stage.
+  - `due_today`, `overdue`, `due_this_week` (today to Sunday) count only jobs in production (queued, in progress, on hold).
+- **workload:** remaining hours of the stages on the bench, per stage type. That means stages in progress, plus pending stages planned for today (`scheduled_start`), of queued and in-progress jobs; on-hold jobs are left out. `capacity_seconds` = `schedule.capacity_hours_per_day` when the shop opens today, otherwise 0.
+- **schedule:**
+  1. The signed-in user's running timer comes first.
+  2. Then stages planned for today and today's scheduled or confirmed appointments, by time.
+  3. Then up to 3 `next` entries: the current stage of queued and in-progress jobs in due order (due date, then priority, then number). Running stages, stages already listed and milestones are skipped. `next` entries have no time.
+- **priority_jobs:** jobs in production, urgent and high first, then by due date.
+- **alerts:** same order as the inventory and tools summaries (§12, §13).
+- **insights:** open cards, critical first, then newest.
+
+## 18. Offline sync 🔒 `business`
+
+The app keeps a copy of the business data on the phone (ARCHITECTURE §21). Writes made offline are replayed through the endpoints above.
+
+### `GET /sync/pull?cursor=<int>&limit=<1–1000, default 500>`
+Rows changed after `cursor` (a `sync_seq`), oldest first, tombstones included (`deleted_at` set; voided work logs keep `void_reason`).
+```json
+{ "cursor": 1834, "has_more": false, "config_version": 7, "server_time": "2026-10-09T08:00:00.000Z",
+  "changes": {
+    "customers": [{ "id", "full_name", "phone", "phone_alt", "email", "address", "notes", "style_preferences", "preferred_unit", "archived_at", "version", "created_at", "updated_at", "deleted_at", "sync_seq" }],
+    "measurement_sets": [{ "id", "customer_id", "measured_at", "entered_unit", "notes", "supersedes_set_id", "created_by", "recorded_by", "created_at", "deleted_at", "sync_seq",
+                           "values": [{ "field_id": 3, "value_cm": 106.68, "value_text": null }] }],
+    "jobs": [{ "id", "job_number", "customer_id", "job_type_id", "title", "description", "quantity", "priority", "status", "order_date", "due_date", "collection_date",
+               "measurement_set_id", "fabric_note", "progress_override", "notes", "cancel_reason", "completed_at", "version", "created_at", "updated_at", "deleted_at", "sync_seq" }],
+    "job_tasks": [{ "id", "job_id", "task_type_id", "task_name", "sort_order", "status", "estimated_seconds", "progress_override", "scheduled_start", "scheduled_end",
+                    "completed_at", "notes", "version", "updated_at", "deleted_at", "sync_seq" }],
+    "job_task_checklist_items": [{ "id", "job_task_id", "label", "is_done", "done_at", "sort_order", "version", "created_at", "deleted_at", "sync_seq" }],
+    "work_logs": [{ "id", "job_task_id", "entry_type", "started_at", "ended_at", "note", "needs_review", "void_reason", "created_by", "recorded_by", "version", "created_at", "deleted_at", "sync_seq" }] } }
+```
+Start with `cursor=0` and repeat with the returned `cursor` while `has_more` is true. Hours and progress are not sent: the app calculates them with the same rules as the views.
+
+### `GET /sync/config`
+`{"config_version", "settings": {"business.timezone", "jobs.due_soon_days", …}, "task_types": [...], "job_types": [... with "tasks" templates, inactive included], "measurement_groups": [... with "fields", inactive included], "inventory_categories": [...], "tool_categories": [...]}`. Download again whenever `config_version` from a pull differs.
+
+## 19. CLI (server only)
 ```bash
 php artisan migrate --force                     # apply new migrations (each runs its SQL file from /database/migrations)
 php artisan db:seed --force                     # reference data (idempotent, every environment)

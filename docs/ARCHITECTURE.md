@@ -153,7 +153,7 @@ Deviations from the brief and why: `ai-service/` (brief requires decoupled AI), 
 | Prefs | `shared_preferences` | Non-sensitive UI prefs (units, last tab) |
 | Local cache | none in v1, or **drift** if offline is approved [D-07] | |
 | Fonts / icons | Bundled Plus Jakarta Sans; `material_symbols_icons` | Exact match to Stitch; no runtime font download |
-| Charts | `fl_chart` | Reports, workload bars |
+| Charts | Plain Flutter widgets (bars) — `fl_chart` not added | Reports. A chart library can be added later if richer charts are wanted |
 | Calendar | Custom week strip (matches design) + `table_calendar` for month grid | |
 | Images | `image_picker`, `flutter_image_compress`, `cached_network_image` | Reference photos with auth headers |
 | Push | `firebase_messaging` + `flutter_local_notifications` | Also used for the ongoing "timer running" notification |
@@ -409,20 +409,45 @@ Transitions enforced by `App\Support\JobStatusMachine` on the server. Starting o
 
 ## 11. Inventory Architecture
 
-- `inventory_items` hold the **current** `quantity_on_hand` and `quantity_reserved`; every change is recorded in the append-only **`stock_movements` ledger** (receive, adjust, consume, reserve/release, write-off, return) — on-hand is always explainable and rebuildable.
-- Stock changes run in a transaction with `SELECT … FOR UPDATE` on the item row; on-hand may not go negative (DB `CHECK`) unless an explicit, audited adjustment.
-- **Job materials**: an item can be *reserved* for a job ("Allocate to Job") and later *consumed*; `available = on_hand − reserved`. Consumption data feeds AI usage forecasts.
-- **Low stock** when `available ≤ min_stock_level`; **out of stock** when `on_hand = 0`. Evaluated immediately after each movement (creates a deduplicated notification) and in a daily digest.
-- Units from a fixed list (m, yd, cm, pcs, spool, roll, set, box, pack) per item; no automatic unit conversion between items in v1.
-- Categories configurable (seeded: Fabric, Thread, Buttons, Zippers, Linings, Needles, Interfacing/Canvas, Other). Supplier and cost optional. Lots/rolls optional [D-16].
+> **Implemented (group 6, 2026-10-09)** as designed in DATABASE_DESIGN §6.6. This replaces the earlier draft (stored quantities, reservations).
+
+- **No stored quantity.** Stock on hand = Σ `quantity_change` of the non-voided rows of the append-only **`inventory_transactions`** ledger (`v_inventory_stock`). Types: `opening` (with a new item), `purchase`, `return` (+), `usage`, `write_off` (−), `adjustment` (stock count: the app sends the counted quantity, the server records the difference). Mistakes are voided with a reason, never edited.
+- **Job usage instead of reservations:** a `usage` (or `return`) may name the job. The job sheet shows the materials used; "Allocate to Job" in the design is "Use for Job". Consumption feeds the later AI usage forecasts.
+- **Status:** negative (< 0) → depleted (≤ 0) → low (≤ `min_stock_level`) → in stock. `InventoryStock` (PHP) and `StockRules` (Dart) hold the same rules.
+- **Negative stock:** every write locks the item row (`SELECT … FOR UPDATE`). Online, a change that would take stock below zero is refused (`422 INSUFFICIENT_STOCK`). A change recorded offline is replayed with `offline: true` and accepted, because the material was really used; it is audit-logged (`inventory.negative_stock`) and the item shows "Recount" until a stock count corrects it. The notification for it comes with group 9.
+- Units from a fixed list (m, yd, cm, pcs, spool, cone, roll, set, box, pack, kg, g); count units take whole numbers; the unit cannot change once stock is recorded. No conversion between units.
+- Categories are configuration (seeded: Fabric, Thread, Buttons, Zippers, Linings, Needles, Interfacing & Canvas, Other Materials), edited online, hidden rather than deleted. Supplier and unit cost optional; the summary's stock value = Σ max(on hand, 0) × unit cost. Lots/rolls and barcode scanning are not built [D-16, §1.4].
+- Low-stock notifications and the daily digest come with group 9.
 
 ## 12. Tool Maintenance Architecture
 
-- `tools` store category, purchase date, serial/reference, condition (`excellent/good/fair/poor`), operational status (`operational/needs_service/out_of_service/retired`), maintenance interval (days, optional usage-hours), `last_maintenance_date`, computed `next_maintenance_date`.
-- `tool_maintenance_logs`: each service performed (date, type, description, performed by, cost optional, condition after). Inserting a log updates `last_maintenance_date` and recomputes `next = last + interval` in one transaction (manual override allowed).
-- Due-soon window (default 7 days) and overdue states drive dashboard alerts and notifications.
+> **Implemented (group 7, 2026-10-09)** as designed in DATABASE_DESIGN §6.7. This replaces the earlier draft (stored last/next dates, usage hours, cost).
+
+- `tools` store category, brand/model, serial, purchase date, condition (`excellent/good/fair/poor`), operational status (`operational/needs_service/out_of_service/retired`), location, service cycle in days (optional) and an optional manual next date. No cost fields.
+- `tool_maintenance_logs`: each service done (date, type, description, performed by, condition after). Logging clears the manual next date and can update the tool's condition and status in the same transaction. An entry made by mistake is removed (tombstone, audit-logged).
+- **Dates are calculated** (`v_tool_maintenance_status`): next = manual date, else (last service | purchase date | date added) + cycle. `ToolMaintenance` (PHP) and `MaintenanceRules` (Dart) add the state: overdue, due soon (within `tools.maintenance_due_soon_days`, default 7), ok, or none (no cycle, retired).
+- The tools screen leads with the most urgent tool (overdue → out of service → needs service → due soon); the calendar shows service due dates. Due/overdue notifications come with group 9.
+- Works offline like the other modules; tool categories are configuration (online).
+
+### 12.1 Reports (group 8, 2026-10-09)
+
+- **Calculated on the server** (`ReportService`, `GET /reports/*`, API_REFERENCE §14), from the business tables and the views; nothing is stored. Six reports: jobs & deadlines (incl. completion trends and on-time rate), hours & estimates, workload & capacity, customers, inventory, tools & maintenance. No per-worker figures (no workers).
+- **Offline:** reports are the one read that is not built on the device (they are calculations). The app keeps the last result of each report and range in the local store and shows it without signal, marked "Offline · figures from …". A report never opened before needs a connection.
+- Charts are simple bars drawn with Flutter widgets (no chart library). CSV export and printing are not built.
+
+### 12.2 Dashboard (group 11, 2026-10-10)
+
+- **Calculated, not stored:** `GET /dashboard` (`DashboardService`, API_REFERENCE §17) on the server, and the same rules on the phone (`Presenter.dashboard`), so the dashboard works offline. A live test checks the two agree. The app recomputes every minute, so "today", overdue and shop open stay current.
+- **Shop open** comes from `schedule.working_hours` (§1.4).
+- **Today's workload** is the remaining hours of the stages on the bench (in progress, or planned for today) against `schedule.capacity_hours_per_day`.
+- **Production schedule:** the running timer, stages planned for today and today's appointments at their real times, then an "up next" queue in due order **without invented times**. "Optimize schedule" from the design is not built (the AI only proposes).
+- **Pause and Start Next** use the normal timer actions.
+- **AI card:** the most important open insight, with the same actions as the AI screen.
+- **Alerts:** use the inventory and tools summary rules (`InventoryStock::alerts`, `ToolMaintenance::alerts`).
 
 ## 13. Notification Architecture
+
+> **Implemented (group 9, 2026-10-09):** rules, storage, in-app list and bell, the push outbox and the FCM sender (API_REFERENCE §15). The scheduler is the `scheduler` container (`php artisan schedule:work`). Alerts go to users with the `alerts` permission (owner role). **Push is off until Firebase credentials are configured**; the app side of push (`firebase_messaging`, needs the project's `google-services.json`) is not added yet. Per-type preferences and quiet hours are not built yet. The AI-insight rule comes with group 10.
 
 - **Generation**: a scheduler (`* * * * * php bin/console schedule:run`) executes rules at their cadence, plus event-driven triggers inside services:
   | Rule | Trigger |
@@ -439,6 +464,13 @@ Transitions enforced by `App\Support\JobStatusMachine` on the server. Starting o
 - Customer-facing notifications (SMS/WhatsApp to clients) are out of scope [D-17].
 
 ## 14. AI Architecture
+
+> **Implemented (group 10, 2026-10-09)**, with these choices (API_REFERENCE §16, `ai-service/README.md`):
+> - `ai-service/` is plain PHP 8.3 (PDO + Composer autoload, no framework), run as the internal `ai` container; only the core API reaches it, with HMAC-signed requests.
+> - Its database account is narrower than planned: **SELECT on everything, INSERT on `ai_predictions` only**. The core API stores the insight cards (it owns `sync_seq` ordering) and turns new warning/critical cards into notifications.
+> - Analytics: EstimateModel, CompletionForecaster (with delay risk), AccuracyTracker, WorkloadAnalyzer, InventoryForecaster, InsightGenerator. PriorityAdvisor is a rule in InsightGenerator.
+> - Gemini is used **only for the chat** (function calling over the analytics; daily call cap). Insight texts come from templates, so refreshing insights costs no quota. Without a key, the chat answers the common questions from the figures.
+> - Chat history is kept in the app only (no `ai_conversations` tables). "Apply schedule" is not built: cards link to the job, restock, calendar or templates.
 
 ### 14.1 Shape
 ```
@@ -538,7 +570,7 @@ Structured JSON logs with `request_id`; slow-query log; `/health` (liveness) and
 | D-02 | Production hosting | **Approved:** VPS (Ubuntu 24.04, Nginx, PHP-FPM 8.3, MySQL 8.4) |
 | D-03 | Tenancy | Proposed: single business per deployment |
 | D-04 | PHP framework | **Approved: Laravel 13** (custom token guard, SQL-file migrations; see §5) |
-| D-05 | Flutter state/navigation | **Implemented (group 1):** Riverpod 3 + go_router 18 + dio 5, hand-written models (no codegen); **drift** (local SQLite) arrives with offline data in group 2 |
+| D-05 | Flutter state/navigation/local data | **Implemented:** Riverpod 3 + go_router 18 + dio 5, hand-written models (no codegen). **Local database (changed 2026-10-09):** the `sqlite3` package directly instead of drift — drift needs code generation, which this project avoids; rows are stored as JSON and queried in Dart (see §21) |
 | D-06 | Roles | Proposed: `owner`, `admin`; admin may access business data for support (audit-logged) |
 | D-07 | Offline support | **Approved: offline-first.** UUIDv7 keys, tombstones, `version`, `sync_seq` (see §21) |
 | D-08 | Concurrent timers | Workers removed → one running timer per user (enforced by the DB) |
@@ -558,13 +590,15 @@ Structured JSON logs with `request_id`; slow-query log; `/health` (liveness) and
 | D-22 | Workers | **Approved: none.** No workers table, no assignment |
 | D-23 | Calculated values | **Per brief:** hours, stock and last/next maintenance are calculated by views, not stored |
 
-## 21. Offline Sync Architecture (approved; built in Phases 1–4)
-- **Local store:** the app keeps a local SQLite database (drift) that mirrors the synced business tables and the configuration bundle. Screens read from it, so the app works without a connection.
-- **Identity:** business records get UUIDv7 ids on the device, so sending the same record twice is harmless.
-- **Pull:** `GET /sync/pull?cursor=<sync_seq>` returns rows changed since the cursor (including tombstones), in pages. Configuration is downloaded as one bundle whenever `config_version` changes.
-- **Push:** local changes are queued (an outbox) and sent in batches, each with the `version` it was based on. The server applies each change in a transaction. A version mismatch comes back as a conflict for the owner to resolve (keep mine / keep server) and is never silently overwritten.
-- **Server-only fields:** job numbers, notifications and AI rows are produced by the server and pulled.
-- **Timers offline:** use device time, validated on push (not in the future, no overlaps, long sessions flagged). One running timer per user is enforced both locally and by the server's unique key.
-- **Stock offline:** usage is accepted even if it makes stock negative; the server raises a `negative_stock` alert.
-- **Files offline:** metadata syncs first (`upload_status = pending`); the image uploads when a connection is available.
-- **Auth offline:** an expired access token does not block local use. An app lock (PIN/biometric) protects the device, and the refresh token is used at the next sync.
+## 21. Offline Sync Architecture (implemented 2026-10-09)
+- **Local store:** an SQLite file in app-private storage (`sqlite3` package, no code generation). Business rows are kept as JSON per table (`rows(tbl, id, data)`), loaded into memory on start and written through on every change; plus `meta` (sync cursor, configuration bundle, clock offset, signed-in user) and `outbox` (queued changes). A tailoring business has thousands of rows, so plain Dart queries are fast enough. Screens read only from this copy (`presenterProvider` → `Presenter` builds the same JSON shapes as the API resources), so every screen works without a connection.
+- **Pull:** `GET /sync/pull?cursor=<sync_seq>&limit=500` returns rows changed since the cursor (tombstones included), oldest first; measurement values travel inside their (immutable) set. `GET /sync/config` downloads garment types and templates, stages, measurement fields and settings whenever `config_version` changes. Server time from each pull gives the clock offset used to display timers.
+- **Writes:** tried online first, so validation errors and conflicts appear immediately; a successful call is followed by a pull (the server's rows replace the local ones). Without a connection — or while earlier changes still wait — the change is applied to the local copy with the server's rules (`LocalOps`: status machine, stage rules, timer rules, hour formulas) and queued in the outbox as the original API call. Queued calls are replayed in order when the connection returns (every 30 s while changes wait, on app resume, on pull-to-refresh).
+- **Idempotency:** records get UUIDv7 ids on the device (including the stages of a new job), timer stop sends the session id (`entry_id`), and status changes are absolute, so a replay after a lost response does no harm.
+- **Conflicts:** a replay the server refuses (e.g. `CONFLICT_VERSION`, `DUPLICATE_PHONE`, `TASKS_INCOMPLETE`) stays in the outbox as *failed*. The Sync screen (banner above the bottom navigation, More → Sync) offers: keep my version (resend with the current version), save anyway (duplicate phone), try again, or discard (the local copy is rebuilt from the server and the remaining queued changes are re-applied). Nothing is overwritten silently. Customer edits send only the fields that changed, so keeping my version never undoes another device's change to other fields.
+- **Server-only fields:** job numbers (a job created offline shows "New" until it syncs), notifications and AI rows are produced by the server and pulled.
+- **Timers offline:** queued timer calls carry the device time (`occurred_at`), validated by the server: not in the future (1 min tolerance), not older than 7 days, not overlapping work already logged (`409 TIMER_OVERLAP`); long sessions are flagged. One running timer per user is enforced locally and by the server's unique key. Online calls use the server clock.
+- **Configuration edits** (garment templates, stage types) need a connection.
+- **Accounts on the device:** signing out removes the business data from the phone (with a warning when changes have not been sent); another account signing in starts from an empty copy. An expired session keeps the data and the queue for the same user.
+- **Stock offline (group 6):** stock changes replay with `offline: true` and are accepted even if stock goes negative (see §11).
+- **Still to come:** file uploads (metadata first), and an optional app lock (PIN/biometric).

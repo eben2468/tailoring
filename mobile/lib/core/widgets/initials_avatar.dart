@@ -35,11 +35,7 @@ class InitialsAvatar extends StatelessWidget {
       ),
       child: Text(
         initialsOf(name),
-        style: AppText.titleSm.copyWith(
-          fontSize: size * 0.36,
-          height: 1,
-          color: dark ? AppColors.onPrimary : AppColors.onSurface,
-        ),
+        style: AppText.titleSm.copyWith(fontSize: size * 0.36, height: 1, color: dark ? AppColors.onPrimary : AppColors.onSurface),
       ),
     );
   }

@@ -35,6 +35,7 @@ final class JobRequest extends ApiRequest
             'fabric_note' => ['sometimes', 'nullable', 'string', 'max:255'],
             'notes' => ['sometimes', 'nullable', 'string', 'max:5000'],
             'tasks' => $creating ? ['sometimes', 'array', 'min:1', 'max:40'] : ['prohibited'],
+            'tasks.*.id' => ['sometimes', 'nullable', 'uuid', 'distinct'],
             'tasks.*.task_type_id' => ['required', 'integer'],
             'tasks.*.task_name' => ['sometimes', 'nullable', 'string', 'max:120'],
             'tasks.*.estimated_seconds' => ['sometimes', 'integer', 'min:0', 'max:1800000'],

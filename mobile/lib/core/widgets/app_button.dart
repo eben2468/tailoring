@@ -76,11 +76,17 @@ class AppButton extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         if (loading)
-          SizedBox(width: iconSize, height: iconSize, child: CircularProgressIndicator(strokeWidth: 2, color: foreground))
+          SizedBox(
+            width: iconSize,
+            height: iconSize,
+            child: CircularProgressIndicator(strokeWidth: 2, color: foreground),
+          )
         else if (icon != null)
           Icon(icon, size: iconSize, color: foreground),
         if (loading || icon != null) const SizedBox(width: 6),
-        Flexible(child: Text(label, style: textStyle, overflow: TextOverflow.ellipsis, maxLines: 1)),
+        Flexible(
+          child: Text(label, style: textStyle, overflow: TextOverflow.ellipsis, maxLines: 1),
+        ),
       ],
     );
 

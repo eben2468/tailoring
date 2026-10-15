@@ -11,6 +11,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_text.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../core/widgets/hero_panel.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_text_field.dart';
@@ -23,8 +24,10 @@ import '../../../core/widgets/section_header.dart';
 import '../../../core/widgets/state_views.dart';
 import '../../../core/widgets/status_pill.dart';
 import '../../customers/application/customer_providers.dart';
-import '../../customers/domain/customer.dart';
+import '../../customers/presentation/customer_picker.dart';
 import '../../measurements/application/measurement_providers.dart';
+import '../../sync/application/sync_providers.dart';
+import '../../ai/application/ai_providers.dart';
 import '../application/job_providers.dart';
 import '../domain/job.dart';
 
@@ -45,7 +48,7 @@ class JobFormScreen extends ConsumerWidget {
       AsyncData(:final value) => _JobForm(existing: value),
       AsyncError(:final error) => DetailScaffold(
         title: 'Edit Job',
-        body: ErrorView(error: error, onRetry: () => ref.invalidate(jobProvider(jobId!))),
+        body: ErrorView(error: error, onRetry: () => ref.invalidate(bootstrapProvider)),
       ),
       _ => const DetailScaffold(title: 'Edit Job', body: LoadingView()),
     };
@@ -99,6 +102,38 @@ class _JobFormState extends ConsumerState<_JobForm> {
     });
   }
 
+  bool _suggesting = false;
+
+  /// AI: hours per stage learned from completed jobs of this garment (a suggestion: the owner edits and saves).
+  Future<void> _suggestHours() async {
+    final type = _jobType;
+    if (type == null) return;
+    setState(() => _suggesting = true);
+    try {
+      final estimates = await ref.read(aiApiProvider).estimate(type.id, _quantity);
+      var updated = 0;
+      for (final (i, task) in _tasks.indexed) {
+        final e = estimates.where((e) => e.taskTypeId == task.taskType.id && e.fromHistory).firstOrNull;
+        if (e != null && !task.taskType.isMilestone) {
+          _hourFields[i].text = Fmt.hours(e.suggestedSeconds);
+          updated++;
+        }
+      }
+      if (!mounted) return;
+      setState(() {});
+      showAppSnack(
+        context,
+        updated == 0
+            ? 'Not enough finished ${type.name} jobs yet: the template hours are kept.'
+            : 'Hours for $updated stage${updated == 1 ? '' : 's'} set from your finished ${type.name} jobs. Adjust them if needed.',
+      );
+    } on ApiException catch (e) {
+      if (mounted) showAppSnack(context, e.message, isError: true);
+    } finally {
+      if (mounted) setState(() => _suggesting = false);
+    }
+  }
+
   int get _totalSeconds => _tasks.indexed.fold(0, (sum, e) => sum + (e.$2.taskType.isMilestone ? 0 : (Fmt.parseHours(_hourFields[e.$1].text) ?? 0)));
 
   Future<void> _pickDate({required bool due}) async {
@@ -116,13 +151,7 @@ class _JobFormState extends ConsumerState<_JobForm> {
   }
 
   Future<void> _pickCustomer() async {
-    final picked = await showModalBottomSheet<Customer>(
-      context: context,
-      useRootNavigator: true, // above the bottom navigation and timer bar
-      isScrollControlled: true,
-      useSafeArea: true,
-      builder: (_) => const _CustomerPicker(),
-    );
+    final picked = await pickCustomer(context);
     if (picked != null) setState(() => _customerId = picked.id);
   }
 
@@ -165,9 +194,13 @@ class _JobFormState extends ConsumerState<_JobForm> {
         context.pop();
       } else {
         final job = await ref.read(jobsApiProvider).create(customerId: _customerId!, jobTypeId: _jobType!.id, draft: draft, fields: fields, tasks: tasks);
-        invalidateJobListsFromWidget(ref, customerId: job.customerId);
         if (!mounted) return;
-        showAppSnack(context, draft ? 'Draft ${job.displayNumber} saved.' : 'Job ${job.displayNumber} queued for production.');
+        showAppSnack(
+          context,
+          job.jobNumber == null
+              ? 'Saved on this phone. The job gets its number when it syncs.'
+              : (draft ? 'Draft ${job.displayNumber} saved.' : 'Job ${job.displayNumber} queued for production.'),
+        );
         context.pushReplacement(Routes.job(job.id));
       }
     } on ValidationException catch (e) {
@@ -273,7 +306,7 @@ class _JobFormState extends ConsumerState<_JobForm> {
               selected: _jobType == null ? -1 : value.indexWhere((t) => t.id == _jobType!.id),
               onChanged: (i) => _chooseType(value[i]),
             ),
-            AsyncError(:final error) => ErrorView(error: error, onRetry: () => ref.invalidate(jobTypesProvider)),
+            AsyncError(:final error) => ErrorView(error: error, onRetry: () => ref.invalidate(bootstrapProvider)),
             _ => const SizedBox(height: 36, child: LoadingView()),
           },
           if (_jobType != null) ...[
@@ -283,7 +316,7 @@ class _JobFormState extends ConsumerState<_JobForm> {
                 Expanded(
                   child: Text('Production Routing', style: AppText.labelMd.copyWith(color: AppColors.onSurfaceVariant)),
                 ),
-                Text('Tap to adjust hours', style: AppText.labelMd.copyWith(color: AppColors.onSurfaceVariant)),
+                AppButton(label: 'Suggest hours', icon: Symbols.auto_awesome, variant: AppButtonVariant.text, size: AppButtonSize.small, loading: _suggesting, onPressed: _suggestHours),
               ],
             ),
             Gap.sm,
@@ -339,7 +372,7 @@ class _JobFormState extends ConsumerState<_JobForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Kicker('Fabric'),
+          const Kicker('Fabric swatch & lot'),
           Gap.sm,
           AppTextField(
             label: 'Fabric',
@@ -471,14 +504,14 @@ class _CustomerCard extends ConsumerWidget {
                         const StatusPill(label: 'Not measured', tone: StatusTone.warning),
                       if (value.summary?.lastMeasuredAt != null) ...[
                         const SizedBox(height: 4),
-                        Text('Measured ${Fmt.relative(value.summary!.lastMeasuredAt!).toLowerCase()}', style: AppText.bodySm.copyWith(color: AppColors.onSurfaceVariant)),
+                        Text('Measured ${Fmt.daysAgo(value.summary!.lastMeasuredAt!)}', style: AppText.bodySm.copyWith(color: AppColors.onSurfaceVariant)),
                       ],
                     ],
                   ),
                 ],
               ),
             ),
-            AsyncError(:final error) => ErrorView(error: error, onRetry: () => ref.invalidate(customerProvider(customerId!))),
+            AsyncError(:final error) => ErrorView(error: error, onRetry: () => ref.invalidate(bootstrapProvider)),
             _ => const SizedBox(height: 72, child: LoadingView()),
           },
           if (error != null) ...[Gap.xs, Text(error!, style: AppText.bodySm.copyWith(color: AppColors.error))],
@@ -567,9 +600,8 @@ class _WorkloadCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return HeroPanel(
       padding: const EdgeInsets.all(AppSpace.lg),
-      decoration: BoxDecoration(color: AppColors.primaryContainer, borderRadius: AppRadius.card, boxShadow: AppShadows.raised),
       child: Row(
         children: [
           Expanded(
@@ -741,82 +773,6 @@ class _StepButton extends StatelessWidget {
       padding: EdgeInsets.zero,
       style: IconButton.styleFrom(backgroundColor: AppColors.surfaceContainerLowest),
       icon: Icon(icon, size: 16, color: onTap == null ? AppColors.outlineVariant : AppColors.onSurface),
-    );
-  }
-}
-
-/// Searchable customer list for choosing who a job is for.
-class _CustomerPicker extends ConsumerStatefulWidget {
-  const _CustomerPicker();
-
-  @override
-  ConsumerState<_CustomerPicker> createState() => _CustomerPickerState();
-}
-
-class _CustomerPickerState extends ConsumerState<_CustomerPicker> {
-  CustomerQuery _query = const CustomerQuery();
-
-  @override
-  Widget build(BuildContext context) {
-    final list = ref.watch(customerListProvider(_query));
-    return SizedBox(
-      height: MediaQuery.sizeOf(context).height * 0.8,
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(AppSpace.margin, 0, AppSpace.margin, MediaQuery.viewInsetsOf(context).bottom),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text('Choose customer', style: AppText.headlineMd),
-            Gap.md,
-            AppSearchField(
-              hint: 'Search name or phone…',
-              onChanged: (t) => setState(() => _query = CustomerQuery(text: t.trim())),
-            ),
-            Gap.md,
-            Expanded(
-              child: switch (list) {
-                AsyncData(:final value) when value.items.isEmpty => MessageView(
-                  icon: Symbols.person_add,
-                  title: 'No customer found',
-                  message: 'Add the customer first, then create the job from their profile.',
-                  actionLabel: 'Add customer',
-                  onAction: () {
-                    Navigator.of(context).pop();
-                    context.push(Routes.customerNew);
-                  },
-                ),
-                AsyncData(:final value) => ListView.separated(
-                  itemCount: value.items.length,
-                  separatorBuilder: (_, _) => Gap.sm,
-                  itemBuilder: (context, i) {
-                    final c = value.items[i];
-                    return AppCard(
-                      onTap: () => Navigator.of(context).pop(c),
-                      child: Row(
-                        children: [
-                          InitialsAvatar(name: c.fullName),
-                          Gap.md,
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(c.fullName, style: AppText.titleSm),
-                                if (c.phone != null) Text(Fmt.phone(c.phone!), style: AppText.bodySm.copyWith(color: AppColors.onSurfaceVariant)),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-                AsyncError(:final error) => ErrorView(error: error, onRetry: () => ref.invalidate(customerListProvider(_query))),
-                _ => const LoadingView(),
-              },
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

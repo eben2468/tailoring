@@ -3,14 +3,22 @@
 use App\Auth\Permissions;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\AiController;
+use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HealthController;
+use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\JobConfigController;
 use App\Http\Controllers\JobController;
 use App\Http\Controllers\JobTaskController;
 use App\Http\Controllers\MeasurementController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\SyncController;
 use App\Http\Controllers\TimerController;
+use App\Http\Controllers\ToolController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -35,7 +43,18 @@ Route::middleware('auth:api')->group(function () {
     Route::patch('/auth/me', [AuthController::class, 'updateMe']);
     Route::post('/auth/change-password', [AuthController::class, 'changePassword']);
 
+    // Notifications (own only) and this phone's push token
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount']);
+    Route::post('/notifications/read-all', [NotificationController::class, 'readAll']);
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'read']);
+    Route::put('/devices/current/push-token', [NotificationController::class, 'setPushToken']);
+    Route::delete('/devices/current/push-token', [NotificationController::class, 'clearPushToken']);
+
     Route::middleware('can:'.Permissions::BUSINESS)->group(function () {
+        // Dashboard (one call for the whole screen)
+        Route::get('/dashboard', DashboardController::class);
+
         // Customers
         Route::get('/customers', [CustomerController::class, 'index']);
         Route::post('/customers', [CustomerController::class, 'store']);
@@ -94,7 +113,63 @@ Route::middleware('auth:api')->group(function () {
         Route::patch('/work-logs/{workLog}', [TimerController::class, 'updateEntry']);
         Route::post('/work-logs/{workLog}/void', [TimerController::class, 'void']);
 
-        // Next groups: calendar, inventory, tools, reports, notifications, AI
+        // Appointments (fittings, consultations, collections …)
+        Route::get('/appointments', [AppointmentController::class, 'index']);
+        Route::post('/appointments', [AppointmentController::class, 'store']);
+        Route::get('/appointments/{appointment}', [AppointmentController::class, 'show']);
+        Route::patch('/appointments/{appointment}', [AppointmentController::class, 'update']);
+        Route::delete('/appointments/{appointment}', [AppointmentController::class, 'destroy']);
+        Route::post('/appointments/{appointment}/status', [AppointmentController::class, 'status']);
+
+        // Inventory: materials, stock ledger, categories
+        Route::get('/inventory/summary', [InventoryController::class, 'summary']);
+        Route::get('/inventory/items', [InventoryController::class, 'index']);
+        Route::post('/inventory/items', [InventoryController::class, 'store']);
+        Route::get('/inventory/items/{item}', [InventoryController::class, 'show']);
+        Route::patch('/inventory/items/{item}', [InventoryController::class, 'update']);
+        Route::post('/inventory/items/{item}/archive', [InventoryController::class, 'archive']);
+        Route::post('/inventory/items/{item}/unarchive', [InventoryController::class, 'unarchive']);
+        Route::get('/inventory/items/{item}/transactions', [InventoryController::class, 'transactions']);
+        Route::post('/inventory/items/{item}/transactions', [InventoryController::class, 'record']);
+        Route::post('/inventory/transactions/{transaction}/void', [InventoryController::class, 'void']);
+        Route::get('/jobs/{job}/materials', [InventoryController::class, 'jobMaterials']);
+        Route::get('/inventory/categories', [InventoryController::class, 'categories']);
+        Route::post('/inventory/categories', [InventoryController::class, 'storeCategory']);
+        Route::patch('/inventory/categories/{category}', [InventoryController::class, 'updateCategory'])->whereNumber('category');
+
+        // Tools & equipment, maintenance, tool categories
+        Route::get('/tools/summary', [ToolController::class, 'summary']);
+        Route::get('/tools', [ToolController::class, 'index']);
+        Route::post('/tools', [ToolController::class, 'store']);
+        Route::get('/tools/{tool}', [ToolController::class, 'show']);
+        Route::patch('/tools/{tool}', [ToolController::class, 'update']);
+        Route::post('/tools/{tool}/archive', [ToolController::class, 'archive']);
+        Route::post('/tools/{tool}/unarchive', [ToolController::class, 'unarchive']);
+        Route::get('/tools/{tool}/maintenance', [ToolController::class, 'logs']);
+        Route::post('/tools/{tool}/maintenance', [ToolController::class, 'logMaintenance']);
+        Route::delete('/tool-maintenance/{log}', [ToolController::class, 'deleteLog']);
+        Route::get('/tool-categories', [ToolController::class, 'categories']);
+        Route::post('/tool-categories', [ToolController::class, 'storeCategory']);
+        Route::patch('/tool-categories/{category}', [ToolController::class, 'updateCategory'])->whereNumber('category');
+
+        // Reports (read-only, calculated on the server)
+        Route::get('/reports/jobs', [ReportController::class, 'jobs']);
+        Route::get('/reports/hours', [ReportController::class, 'hours']);
+        Route::get('/reports/workload', [ReportController::class, 'workload']);
+        Route::get('/reports/customers', [ReportController::class, 'customers']);
+        Route::get('/reports/inventory', [ReportController::class, 'inventory']);
+        Route::get('/reports/tools', [ReportController::class, 'tools']);
+
+        // AI assistant (proxied to the internal AI service; 503 AI_UNAVAILABLE when it is down)
+        Route::get('/ai/overview', [AiController::class, 'overview']);
+        Route::post('/ai/estimate', [AiController::class, 'estimate']);
+        Route::post('/ai/chat', [AiController::class, 'chat'])->middleware('throttle:ai-chat');
+        Route::get('/jobs/{job}/ai/forecast', [AiController::class, 'forecast']);
+        Route::post('/ai/insights/{insight}/{action}', [AiController::class, 'setStatus'])->whereIn('action', ['seen', 'dismiss', 'applied']);
+
+        // Offline sync (read side; writes replay through the endpoints above)
+        Route::get('/sync/pull', [SyncController::class, 'pull']);
+        Route::get('/sync/config', [SyncController::class, 'config']);
     });
 
     Route::prefix('admin')->group(function () {

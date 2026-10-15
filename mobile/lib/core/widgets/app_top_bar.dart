@@ -14,19 +14,9 @@ import 'initials_avatar.dart';
 /// * Tab screens:    logo + "Nutɔfe [Studio]" + section name · bell · avatar
 /// * Detail screens: back · "NUTƆFE" overline + screen title · bell · avatar (+ optional actions)
 class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
-  const AppTopBar.section({super.key, required this.title, this.userName, this.onNotifications, this.onAvatar, this.hasUnread = false})
-      : isDetail = false,
-        actions = const [];
+  const AppTopBar.section({super.key, required this.title, this.userName, this.onNotifications, this.onAvatar, this.hasUnread = false}) : isDetail = false, actions = const [];
 
-  const AppTopBar.detail({
-    super.key,
-    required this.title,
-    this.userName,
-    this.onNotifications,
-    this.onAvatar,
-    this.hasUnread = false,
-    this.actions = const [],
-  }) : isDetail = true;
+  const AppTopBar.detail({super.key, required this.title, this.userName, this.onNotifications, this.onAvatar, this.hasUnread = false, this.actions = const []}) : isDetail = true;
 
   final String title;
   final bool isDetail;

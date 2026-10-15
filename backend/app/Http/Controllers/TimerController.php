@@ -10,10 +10,12 @@ use App\Models\JobTask;
 use App\Models\WorkLog;
 use App\Services\JobHours;
 use App\Services\TimerService;
+use App\Support\ApiException;
 use App\Support\ApiResponse;
 use App\Support\Iso;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 
 /**
  * Work timer and work logs. Timer responses are {timer, job, server_time}: the running session (or
@@ -37,8 +39,8 @@ final class TimerController extends Controller
     /** POST /tasks/{task}/timer/start {id?, note?} */
     public function start(Request $request, JobTask $task): JsonResponse
     {
-        $data = $request->validate(['id' => ['nullable', 'uuid'], 'note' => ['sometimes', 'nullable', 'string', 'max:500']]);
-        $log = $this->timers->start($task, $data['id'] ?? null, $data['note'] ?? null, $this->context($request));
+        $data = $request->validate(['id' => ['nullable', 'uuid'], 'note' => ['sometimes', 'nullable', 'string', 'max:500'], 'occurred_at' => ['sometimes', 'nullable', 'date']]);
+        $log = $this->timers->start($task, $data['id'] ?? null, $data['note'] ?? null, $this->context($request), $this->at($data));
 
         return $this->timerResponse($log, $log->job_task_id, "Timer started on {$task->task_name}.");
     }
@@ -46,9 +48,14 @@ final class TimerController extends Controller
     /** POST /timers/stop {note?, complete_task?} — "Pause Work" / "Log & Finish". */
     public function stop(Request $request): JsonResponse
     {
-        $data = $request->validate(['note' => ['sometimes', 'nullable', 'string', 'max:500'], 'complete_task' => ['sometimes', 'boolean']]);
+        $data = $request->validate([
+            'note' => ['sometimes', 'nullable', 'string', 'max:500'],
+            'complete_task' => ['sometimes', 'boolean'],
+            'entry_id' => ['sometimes', 'nullable', 'uuid'],
+            'occurred_at' => ['sometimes', 'nullable', 'date'],
+        ]);
         $complete = (bool) ($data['complete_task'] ?? false);
-        $log = $this->timers->stop($data['note'] ?? null, $complete, $this->context($request));
+        $log = $this->timers->stop($data['note'] ?? null, $complete, $this->context($request), $data['entry_id'] ?? null, $this->at($data));
 
         return $this->timerResponse(null, $log->job_task_id, $complete ? 'Work logged and stage completed.' : 'Timer paused. Work logged.', $log);
     }
@@ -60,9 +67,10 @@ final class TimerController extends Controller
             'task_id' => ['required', 'uuid'],
             'id' => ['nullable', 'uuid'],
             'note' => ['sometimes', 'nullable', 'string', 'max:500'],
+            'occurred_at' => ['sometimes', 'nullable', 'date'],
         ]);
-        $task = JobTask::findByUuid($data['task_id']) ?? throw \App\Support\ApiException::validation('task_id', 'This stage does not exist.');
-        $log = $this->timers->switch($task, $data['id'] ?? null, $data['note'] ?? null, $this->context($request));
+        $task = JobTask::findByUuid($data['task_id']) ?? throw ApiException::validation('task_id', 'This stage does not exist.');
+        $log = $this->timers->switch($task, $data['id'] ?? null, $data['note'] ?? null, $this->context($request), $this->at($data));
 
         return $this->timerResponse($log, $log->job_task_id, "Switched to {$task->task_name}.");
     }
@@ -103,6 +111,12 @@ final class TimerController extends Controller
         $log = $this->timers->void($workLog, $data['reason'], $this->context($request));
 
         return $this->logResponse($log, 'Entry voided. It no longer counts towards the hours.');
+    }
+
+    /** @param  array<string, mixed>  $data */
+    private function at(array $data): ?Carbon
+    {
+        return empty($data['occurred_at']) ? null : $this->timers->occurredAt((string) $data['occurred_at']);
     }
 
     /** {entry, job} — the changed entry and the recalculated job sheet. */

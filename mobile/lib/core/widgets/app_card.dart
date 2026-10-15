@@ -16,11 +16,7 @@ class AppCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final content = Padding(padding: padding, child: child);
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: color ?? AppColors.surfaceContainerLowest,
-        borderRadius: AppRadius.card,
-        boxShadow: AppShadows.card,
-      ),
+      decoration: BoxDecoration(color: color ?? AppColors.surfaceContainerLowest, borderRadius: AppRadius.card, boxShadow: AppShadows.card),
       child: onTap == null
           ? content
           : Material(

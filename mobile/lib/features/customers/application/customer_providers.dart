@@ -1,15 +1,19 @@
-import 'dart:async';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/providers.dart';
+import '../../../core/local/local_store.dart';
+import '../../../core/network/api_exception.dart';
+import '../../sync/application/sync_providers.dart';
 import '../data/customers_api.dart';
 import '../domain/customer.dart';
 
-final customersApiProvider = Provider<CustomersApi>((ref) => CustomersApi(ref.watch(apiClientProvider)));
+final customersApiProvider = Provider<CustomersApi>((ref) => CustomersApi(ref.watch(syncEngineProvider)));
 
-/// One customer (profile header, form prefill). Invalidate after edits.
-final customerProvider = FutureProvider.autoDispose.family<Customer, String>((ref, id) => ref.watch(customersApiProvider).get(id));
+/// One customer (profile header, form prefill), from the local copy.
+final customerProvider = Provider.family<AsyncValue<Customer>, String>((ref, id) => fromStore(ref, (p) {
+      final row = p.store.get(Tables.customers, id);
+      if (row == null || row['deleted_at'] != null) throw const NotFoundException('This customer was not found. It may have been removed on another device.');
+      return Customer.fromJson(p.customer(row));
+    }));
 
 /// Search + filter for the customers tab.
 class CustomerQuery {
@@ -28,47 +32,27 @@ class CustomerQuery {
 }
 
 class CustomerListState {
-  const CustomerListState({required this.items, required this.total, required this.page, required this.hasMore, this.loadingMore = false});
+  const CustomerListState({required this.items});
 
   final List<Customer> items;
-  final int total;
-  final int page;
-  final bool hasMore;
-  final bool loadingMore;
 
-  CustomerListState copyWith({List<Customer>? items, int? page, bool? hasMore, bool? loadingMore}) => CustomerListState(
-        items: items ?? this.items,
-        total: total,
-        page: page ?? this.page,
-        hasMore: hasMore ?? this.hasMore,
-        loadingMore: loadingMore ?? this.loadingMore,
-      );
+  int get total => items.length;
 }
 
-/// Paged customer list for a query ("load more" at the end of the list).
-final customerListProvider = AsyncNotifierProvider.autoDispose.family<CustomerListController, CustomerListState, CustomerQuery>(CustomerListController.new);
-
-class CustomerListController extends AsyncNotifier<CustomerListState> {
-  CustomerListController(this.query);
-
-  final CustomerQuery query;
-
-  @override
-  Future<CustomerListState> build() async {
-    final first = await ref.read(customersApiProvider).list(query: query.text, status: query.status);
-    return CustomerListState(items: first.items, total: first.total, page: first.page, hasMore: first.hasMore);
-  }
-
-  Future<void> loadMore() async {
-    final current = state.value;
-    if (current == null || !current.hasMore || current.loadingMore) return;
-    state = AsyncData(current.copyWith(loadingMore: true));
-    try {
-      final next = await ref.read(customersApiProvider).list(query: query.text, status: query.status, page: current.page + 1);
-      state = AsyncData(current.copyWith(items: [...current.items, ...next.items], page: next.page, hasMore: next.hasMore, loadingMore: false));
-    } catch (_) {
-      state = AsyncData(current.copyWith(loadingMore: false));
-      rethrow;
-    }
-  }
-}
+/// Customers matching a search (name, email or phone digits), active or archived, by name.
+final customerListProvider = Provider.family<AsyncValue<CustomerListState>, CustomerQuery>((ref, query) => fromStore(ref, (p) {
+      final text = query.text.toLowerCase();
+      var digits = query.text.replaceAll(RegExp(r'\D'), '');
+      if (digits.startsWith('0')) digits = digits.substring(1);
+      final rows = p.store.all(Tables.customers).where((c) {
+        if (c['deleted_at'] != null) return false;
+        if ((c['archived_at'] != null) != (query.status == 'archived')) return false;
+        if (text.isEmpty) return true;
+        final phones = '${c['phone'] ?? ''} ${c['phone_alt'] ?? ''}';
+        return (c['full_name'] as String).toLowerCase().contains(text) ||
+            ((c['email'] as String?) ?? '').contains(text) ||
+            (digits.length >= 3 && phones.contains(digits));
+      }).toList()
+        ..sort((a, b) => (a['full_name'] as String).toLowerCase().compareTo((b['full_name'] as String).toLowerCase()));
+      return CustomerListState(items: rows.map((r) => Customer.fromJson(p.customer(r))).toList());
+    }));

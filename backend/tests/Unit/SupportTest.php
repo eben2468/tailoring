@@ -44,7 +44,8 @@ final class SupportTest extends TestCase
 
     public function test_permissions(): void
     {
-        $this->assertSame([Permissions::BUSINESS], Permissions::forRole('owner'));
+        $this->assertSame([Permissions::BUSINESS, Permissions::RECEIVE_ALERTS], Permissions::forRole('owner'));
+        $this->assertNotContains(Permissions::RECEIVE_ALERTS, Permissions::forRole('admin'), 'the developer account gets no business alerts');
         $this->assertContains(Permissions::ADMIN_USERS, Permissions::forRole('admin'));
         $this->assertSame([], Permissions::forRole('customer'), 'unknown roles get nothing');
     }

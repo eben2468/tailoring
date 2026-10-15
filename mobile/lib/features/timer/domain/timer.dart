@@ -1,4 +1,3 @@
-import '../../jobs/domain/job.dart';
 
 /// One labour-ledger entry (timer session or manual entry).
 class WorkLogEntry {
@@ -97,32 +96,3 @@ class ActiveTimer {
   }
 }
 
-/// Response of every timer call.
-class TimerResult {
-  const TimerResult({this.timer, this.stopped, this.job});
-
-  factory TimerResult.fromJson(Map<String, dynamic> json, {DateTime? receivedAt}) {
-    final server = DateTime.tryParse(json['server_time'] as String? ?? '');
-    final offset = server == null ? Duration.zero : server.difference((receivedAt ?? DateTime.now()).toUtc());
-    return TimerResult(
-      timer: json['timer'] is Map<String, dynamic> ? ActiveTimer.fromJson(json['timer'] as Map<String, dynamic>, offset) : null,
-      stopped: json['stopped'] is Map<String, dynamic> ? WorkLogEntry.fromJson(json['stopped'] as Map<String, dynamic>) : null,
-      job: json['job'] is Map<String, dynamic> ? Job.fromJson(json['job'] as Map<String, dynamic>) : null,
-    );
-  }
-
-  final ActiveTimer? timer;
-  final WorkLogEntry? stopped;
-  final Job? job;
-}
-
-/// Response of work-log changes: the entry and the recalculated job sheet.
-class WorkLogResult {
-  const WorkLogResult({required this.entry, required this.job});
-
-  factory WorkLogResult.fromJson(Map<String, dynamic> json) =>
-      WorkLogResult(entry: WorkLogEntry.fromJson(json['entry'] as Map<String, dynamic>), job: Job.fromJson(json['job'] as Map<String, dynamic>));
-
-  final WorkLogEntry entry;
-  final Job job;
-}

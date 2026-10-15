@@ -25,10 +25,45 @@ abstract final class Routes {
   static String taskTimer(String jobId, String taskId) => '/jobs/$jobId/tasks/$taskId/timer';
   static String taskLogs(String jobId, String taskId) => '/jobs/$jobId/tasks/$taskId/logs';
 
+  // Appointments (/appointments/new before /appointments/:id)
+  static String appointmentNew({DateTime? date, String? customerId, String? jobId, String? type}) {
+    final query = {
+      if (date != null) 'date': '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}',
+      'customer': ?customerId,
+      'job': ?jobId,
+      'type': ?type,
+    };
+    return Uri(path: '/appointments/new', queryParameters: query.isEmpty ? null : query).toString();
+  }
+
+  static String appointment(String id) => '/appointments/$id';
+  static String appointmentEdit(String id) => '/appointments/$id/edit';
+
+  // Inventory (/inventory/new before /inventory/:id)
+  static const inventory = '/inventory';
+  static const inventoryNew = '/inventory/new';
+  static String inventoryItem(String id) => '/inventory/$id';
+  static String inventoryEdit(String id) => '/inventory/$id/edit';
+  static const inventoryCategories = '/settings/inventory-categories';
+
+  // Tools (/tools/new before /tools/:id)
+  static const tools = '/tools';
+  static const toolNew = '/tools/new';
+  static String tool(String id) => '/tools/$id';
+  static String toolEdit(String id) => '/tools/$id/edit';
+  static const toolCategories = '/settings/tool-categories';
+
+  static const ai = '/ai';
+
+  // Reports
+  static const reports = '/reports';
+  static String report(String key) => '/reports/$key';
+
   // Production configuration (settings)
   static const garmentTypes = '/settings/garments';
   static String garmentType(int id) => '/settings/garments/$id';
 
+  static const sync = '/sync';
   static const notifications = '/notifications';
   static const profile = '/profile';
   static const changePassword = '/profile/password';

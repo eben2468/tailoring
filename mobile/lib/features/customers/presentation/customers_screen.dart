@@ -13,12 +13,12 @@ import '../../../core/theme/app_text.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_card.dart';
-import '../../../core/widgets/feedback.dart';
 import '../../../core/widgets/filter_pills.dart';
 import '../../../core/widgets/gap.dart';
 import '../../../core/widgets/initials_avatar.dart';
 import '../../../core/widgets/state_views.dart';
 import '../../../core/widgets/status_pill.dart';
+import '../../sync/application/sync_providers.dart';
 import '../application/customer_providers.dart';
 import '../domain/customer.dart';
 
@@ -54,7 +54,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
       title: 'Customers',
       body: RefreshIndicator(
         edgeOffset: MediaQuery.paddingOf(context).top + 64,
-        onRefresh: () => ref.refresh(customerListProvider(_query).future),
+        onRefresh: () => ref.read(syncControllerProvider.notifier).syncNow(),
         child: CustomScrollView(
           slivers: [
             SliverPadding(
@@ -112,29 +112,16 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                   SliverPadding(
                     padding: EdgeInsets.fromLTRB(AppSpace.margin, 0, AppSpace.margin, belowHeaderAboveNav(context).bottom),
                     sliver: SliverList.separated(
-                      itemCount: value.items.length + (value.hasMore ? 1 : 0),
+                      itemCount: value.items.length,
                       separatorBuilder: (_, _) => Gap.sm,
                       itemBuilder: (context, i) {
-                        if (i == value.items.length) {
-                          return Center(
-                            child: AppButton(
-                              label: 'Load more',
-                              variant: AppButtonVariant.tonal,
-                              size: AppButtonSize.medium,
-                              loading: value.loadingMore,
-                              onPressed: () => ref.read(customerListProvider(_query).notifier).loadMore().catchError((Object e) {
-                                if (context.mounted) showAppSnack(context, errorMessage(e), isError: true);
-                              }),
-                            ),
-                          );
-                        }
                         final customer = value.items[i];
                         return CustomerCard(customer: customer, onTap: () => context.push(Routes.customer(customer.id)));
                       },
                     ),
                   ),
                 ],
-              AsyncError(:final error) => [SliverFillRemaining(hasScrollBody: false, child: ErrorView(error: error, onRetry: () => ref.invalidate(customerListProvider(_query))))],
+              AsyncError(:final error) => [SliverFillRemaining(hasScrollBody: false, child: ErrorView(error: error, onRetry: () => ref.invalidate(bootstrapProvider)))],
               _ => [const SliverFillRemaining(hasScrollBody: false, child: LoadingView())],
             },
           ],

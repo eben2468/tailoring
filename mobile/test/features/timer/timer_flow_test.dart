@@ -51,16 +51,13 @@ void main() {
   test('clock text and server clock offset', () {
     expect(clockText(const Duration(hours: 2, minutes: 35, seconds: 44)), '02:35:44');
     final started = DateTime.utc(2026, 10, 8, 9);
-    final result = TimerResult.fromJson({
-      'timer': {
+    // The server is 10 minutes ahead of the phone: elapsed time follows the server clock.
+    final timer = ActiveTimer.fromJson({
         'id': 'a', 'task_id': 't', 'entry_type': 'timer', 'started_at': started.toIso8601String(), 'ended_at': null,
         'duration_seconds': 0, 'is_running': true, 'version': 1,
         'task': {'id': 't', 'name': 'Sewing', 'job_id': 'j', 'job_title': 'Suit', 'customer_name': 'Kofi'},
-      },
-      // The server is 10 minutes ahead of the phone: elapsed time follows the server.
-      'server_time': DateTime.utc(2026, 10, 8, 10, 10).toIso8601String(),
-    }, receivedAt: DateTime.utc(2026, 10, 8, 10));
-    expect(result.timer!.elapsed(DateTime.utc(2026, 10, 8, 10)), const Duration(hours: 1, minutes: 10));
+    }, const Duration(minutes: 10));
+    expect(timer.elapsed(DateTime.utc(2026, 10, 8, 10)), const Duration(hours: 1, minutes: 10));
   });
 
   testWidgets('start the timer from a job card, pause, and the timer bar follows', (tester) async {
@@ -86,7 +83,7 @@ void main() {
     await tester.tap(find.text('Pause Work'));
     await settle(tester);
     expect(backend.jobs.running, isNull);
-    expect(backend.jobs.logs.single['note'], 'Sleeves set');
+    expect(backend.jobs.logs.map((l) => l['note']), contains('Sleeves set'));
     expect(find.text('Resume Work'), findsOneWidget);
     expect(find.text('PAUSED'), findsOneWidget);
   });
@@ -112,16 +109,17 @@ void main() {
     await settle(tester);
     final task = (backend.jobs.jobs.single['tasks'] as List)[1] as Map;
     expect(task['status'], 'completed');
-    expect(task['actual_seconds'], inInclusiveRange(900 + 3900, 900 + 3900 + 5)); // +15 m adjustment + the 1 h 05 m session
+    expect(backend.jobs.actualSeconds(task['id'] as String), inInclusiveRange(900 + 3900, 900 + 3900 + 5)); // +15 m adjustment + the 1 h 05 m session
     expect(find.text('ACTIVE SESSION'), findsNothing); // back on the list
     expect(find.text('Start Timer'), findsOneWidget);
   });
 
   testWidgets('starting another job while a timer runs offers to switch', (tester) async {
     final first = backend.jobs.addJob(kofi, dueInDays: 3, done: 1);
+    final cutting = ((first['tasks'] as List)[1] as Map)['id'] as String;
     backend.jobs
       ..addJob(kofi, dueInDays: 5, done: 2)
-      ..runTimer(((first['tasks'] as List)[1] as Map)['id'] as String);
+      ..runTimer(cutting);
     await pumpApp(tester);
     // The second card's button sits under the bottom bar: scroll it into view.
     await tester.drag(find.byType(Scrollable).first, const Offset(0, -500));
@@ -135,7 +133,7 @@ void main() {
 
     expect(find.text('ACTIVE SESSION'), findsOneWidget);
     expect(find.text('STAGE 3 • SEWING'), findsOneWidget);
-    expect(backend.jobs.logs, hasLength(1)); // the cutting session was closed
+    expect(backend.jobs.logs.where((l) => l['job_task_id'] == cutting), hasLength(1)); // the cutting session was closed
   });
 
   testWidgets('work log lists sessions and manual entries', (tester) async {

@@ -8,11 +8,19 @@ import '../features/admin/presentation/audit_log_screen.dart';
 import '../features/admin/presentation/new_user_screen.dart';
 import '../features/admin/presentation/user_detail_screen.dart';
 import '../features/admin/presentation/users_screen.dart';
+import '../features/ai/presentation/ai_screen.dart';
 import '../features/auth/application/session_controller.dart';
 import '../features/auth/presentation/login_screen.dart';
+import '../features/calendar/presentation/appointment_form_screen.dart';
+import '../features/calendar/presentation/appointment_screen.dart';
+import '../features/calendar/presentation/calendar_screen.dart';
 import '../features/customers/presentation/customer_form_screen.dart';
 import '../features/customers/presentation/customer_profile_screen.dart';
 import '../features/customers/presentation/customers_screen.dart';
+import '../features/dashboard/presentation/dashboard_screen.dart';
+import '../features/inventory/presentation/inventory_item_form_screen.dart';
+import '../features/inventory/presentation/inventory_item_screen.dart';
+import '../features/inventory/presentation/inventory_screen.dart';
 import '../features/jobs/presentation/garment_templates_screen.dart';
 import '../features/jobs/presentation/job_detail_screen.dart';
 import '../features/jobs/presentation/job_form_screen.dart';
@@ -20,8 +28,16 @@ import '../features/jobs/presentation/jobs_screen.dart';
 import '../features/measurements/presentation/measurement_history_screen.dart';
 import '../features/measurements/presentation/record_measurements_screen.dart';
 import '../features/settings/presentation/change_password_screen.dart';
+import '../features/notifications/presentation/notifications_screen.dart';
+import '../features/reports/domain/reports.dart';
+import '../features/reports/presentation/reports_screen.dart';
+import '../features/settings/presentation/category_settings_screen.dart';
 import '../features/settings/presentation/more_screen.dart';
 import '../features/settings/presentation/profile_screen.dart';
+import '../features/sync/presentation/sync_screen.dart';
+import '../features/tools/presentation/tool_form_screen.dart';
+import '../features/tools/presentation/tool_screen.dart';
+import '../features/tools/presentation/tools_screen.dart';
 import '../features/timer/presentation/timer_screen.dart';
 import '../features/timer/presentation/timer_widgets.dart';
 import '../features/timer/presentation/work_logs_screen.dart';
@@ -62,9 +78,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       StatefulShellRoute.indexedStack(
         builder: (context, state, shell) => _AppShell(shell: shell),
         branches: [
-          _branch(Routes.dashboard, const ModuleNotReadySection(module: AppModule.dashboard)),
+          _branch(Routes.dashboard, const DashboardScreen()),
           _branch(Routes.jobs, const JobsScreen()),
-          _branch(Routes.calendar, const ModuleNotReadySection(module: AppModule.calendar)),
+          _branch(Routes.calendar, const CalendarScreen()),
           _branch(Routes.customers, const CustomersScreen()),
           _branch(Routes.more, const MoreScreen()),
         ],
@@ -82,11 +98,39 @@ final routerProvider = Provider<GoRouter>((ref) {
       _pushed('/jobs/:id/edit', (s) => JobFormScreen(jobId: s.pathParameters['id'])),
       _pushed('/jobs/:id/tasks/:taskId/timer', (s) => TimerScreen(jobId: s.pathParameters['id']!, taskId: s.pathParameters['taskId']!)),
       _pushed('/jobs/:id/tasks/:taskId/logs', (s) => WorkLogsScreen(jobId: s.pathParameters['id']!, taskId: s.pathParameters['taskId']!)),
+      // Appointments (order matters: /appointments/new before /appointments/:id)
+      _pushed('/appointments/new', (s) => AppointmentFormScreen(
+            date: DateTime.tryParse(s.uri.queryParameters['date'] ?? ''),
+            customerId: s.uri.queryParameters['customer'],
+            jobId: s.uri.queryParameters['job'],
+            type: s.uri.queryParameters['type'],
+          )),
+      _pushed('/appointments/:id', (s) => AppointmentScreen(appointmentId: s.pathParameters['id']!)),
+      _pushed('/appointments/:id/edit', (s) => AppointmentFormScreen(appointmentId: s.pathParameters['id'])),
+      // Inventory (order matters: /inventory/new before /inventory/:id)
+      _pushed(Routes.inventory, (_) => const InventoryScreen()),
+      _pushed(Routes.inventoryNew, (_) => const InventoryItemFormScreen()),
+      _pushed('/inventory/:id', (s) => InventoryItemScreen(itemId: s.pathParameters['id']!)),
+      _pushed('/inventory/:id/edit', (s) => InventoryItemFormScreen(itemId: s.pathParameters['id'])),
+      _pushed(Routes.inventoryCategories, (_) => const CategorySettingsScreen(kind: CategoryKind.materials)),
+      // Tools (order matters: /tools/new before /tools/:id)
+      _pushed(Routes.tools, (_) => const ToolsScreen()),
+      _pushed(Routes.toolNew, (_) => const ToolFormScreen()),
+      _pushed('/tools/:id', (s) => ToolScreen(toolId: s.pathParameters['id']!)),
+      _pushed('/tools/:id/edit', (s) => ToolFormScreen(toolId: s.pathParameters['id'])),
+      _pushed(Routes.toolCategories, (_) => const CategorySettingsScreen(kind: CategoryKind.tools)),
+      _pushed(Routes.ai, (_) => const AiScreen()),
+      _pushed(Routes.reports, (_) => const ReportsScreen()),
+      _pushed('/reports/:key', (s) {
+        final kind = ReportKind.byKey(s.pathParameters['key']!);
+        return kind == null ? const ReportsScreen() : ReportScreen(kind: kind);
+      }),
       _pushed(Routes.garmentTypes, (_) => const GarmentTypesScreen()),
       _pushed('/settings/garments/:id', (s) => GarmentTemplateScreen(jobTypeId: int.parse(s.pathParameters['id']!))),
+      _pushed(Routes.sync, (_) => const SyncScreen()),
       _pushed(Routes.profile, (_) => const ProfileScreen()),
       _pushed(Routes.changePassword, (_) => const ChangePasswordScreen()),
-      _pushed(Routes.notifications, (_) => const ModuleNotReadyScreen(module: AppModule.notifications)),
+      _pushed(Routes.notifications, (_) => const NotificationsScreen()),
       _pushed(Routes.adminUsers, (_) => const UsersScreen()),
       _pushed(Routes.adminUserNew, (_) => const NewUserScreen()),
       _pushed('/admin/users/:id', (state) => UserDetailScreen(userId: int.parse(state.pathParameters['id']!))),
@@ -120,6 +164,7 @@ class _AppShell extends StatelessWidget {
       body: shell,
       // The running-timer strip sits on the dock; extendBody adds both heights to the body's bottom padding.
       bottomNavigationBar: Column(mainAxisSize: MainAxisSize.min, children: [
+        const SyncBanner(),
         const TimerBar(),
         AppBottomNav(
           currentIndex: shell.currentIndex,

@@ -49,7 +49,9 @@ class AppBottomNav extends StatelessWidget {
                 child: Row(
                   children: [
                     for (var i = 0; i < destinations.length; i++)
-                      Expanded(child: _NavItem(destination: destinations[i], selected: i == currentIndex, onTap: () => onSelected(i))),
+                      Expanded(
+                        child: _NavItem(destination: destinations[i], selected: i == currentIndex, onTap: () => onSelected(i)),
+                      ),
                   ],
                 ),
               ),
@@ -88,7 +90,11 @@ class _NavItem extends StatelessWidget {
               child: AnimatedOpacity(
                 opacity: selected ? 1 : 0,
                 duration: AppMotion.fast,
-                child: Container(width: 24, height: 2, decoration: BoxDecoration(color: AppColors.primaryContainer, borderRadius: AppRadius.full)),
+                child: Container(
+                  width: 24,
+                  height: 2,
+                  decoration: BoxDecoration(color: AppColors.primaryContainer, borderRadius: AppRadius.full),
+                ),
               ),
             ),
             Column(
@@ -98,11 +104,7 @@ class _NavItem extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   destination.label,
-                  style: AppText.labelSm.copyWith(
-                    color: color,
-                    letterSpacing: -0.1,
-                    fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
-                  ),
+                  style: AppText.labelSm.copyWith(color: color, letterSpacing: -0.1, fontWeight: selected ? FontWeight.w700 : FontWeight.w600),
                   maxLines: 1,
                   overflow: TextOverflow.fade,
                   softWrap: false,

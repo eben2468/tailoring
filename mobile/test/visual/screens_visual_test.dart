@@ -82,8 +82,8 @@ void main() {
         final now = DateTime.now().toUtc();
         return FakeReply.ok([
           {'id': 3, 'action': 'auth.login', 'user_name': 'Marcus Owusu', 'entity_type': 'user', 'entity_id': '1', 'ip_address': '172.18.0.1', 'created_at': now.subtract(const Duration(minutes: 3)).toIso8601String()},
-          {'id': 2, 'action': 'auth.login_failed', 'user_name': 'Ama Mensah', 'entity_type': 'user', 'entity_id': '2', 'ip_address': '102.176.4.9', 'created_at': now.subtract(const Duration(hours: 2)).toIso8601String()},
-          {'id': 1, 'action': 'admin.password_reset', 'user_name': 'Marcus Owusu', 'entity_type': 'user', 'entity_id': '2', 'ip_address': '172.18.0.1', 'created_at': now.subtract(const Duration(days: 1)).toIso8601String()},
+          {'id': 2, 'action': 'auth.login_failed', 'user_name': 'Ama Mensah', 'entity_type': 'user', 'entity_id': '2', 'ip_address': '102.176.4.9', 'created_at': '2026-10-01T14:20:00.000Z'}, // fixed dates: a relative time would change the screenshot
+          {'id': 1, 'action': 'admin.password_reset', 'user_name': 'Marcus Owusu', 'entity_type': 'user', 'entity_id': '2', 'ip_address': '172.18.0.1', 'created_at': '2026-09-28T09:05:00.000Z'},
         ], meta: {'pagination': {'page': 1, 'per_page': 50, 'total': 3, 'total_pages': 1}});
       }
       return FakeReply.ok(null);
@@ -102,11 +102,6 @@ void main() {
     await tester.enterText(find.byType(TextFormField).at(1), 'wrong');
     await tester.tap(find.text('Sign In'));
     await shoot(tester, 'login_error');
-  });
-
-  testWidgets('dashboard tab (module not built yet)', (tester) async {
-    await pumpApp(tester);
-    await shoot(tester, 'dashboard_pending');
   });
 
   testWidgets('more', (tester) async {

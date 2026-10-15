@@ -17,7 +17,9 @@ class SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Flexible(child: Text(title, style: AppText.headlineMd, overflow: TextOverflow.ellipsis)),
+        Flexible(
+          child: Text(title, style: AppText.headlineMd, overflow: TextOverflow.ellipsis),
+        ),
         if (count != null) ...[
           const SizedBox(width: AppSpace.sm),
           Container(

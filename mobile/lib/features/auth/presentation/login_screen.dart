@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
@@ -11,6 +12,7 @@ import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../../../core/widgets/brand_mark.dart';
 import '../../../core/widgets/gap.dart';
+import '../../../core/widgets/hero_panel.dart';
 import '../application/session_controller.dart';
 
 /// Sign-in (no Stitch design exists; composed from the design system).
@@ -62,84 +64,87 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     final notice = ref.watch(signInNoticeProvider);
 
-    return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpace.margin, vertical: AppSpace.xl),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
-              child: AutofillGroup(
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const _BrandBlock(),
-                      Gap.xl,
-                      AppCard(
-                        padding: const EdgeInsets.all(AppSpace.lg),
+    // Navy brand panel (the app's hero-panel look) with the sign-in card overlapping its lower edge.
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light.copyWith(statusBarColor: Colors.transparent),
+      child: Scaffold(
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              HeroPanel(
+                radius: const BorderRadius.vertical(bottom: Radius.circular(28)),
+                padding: EdgeInsets.fromLTRB(AppSpace.margin, MediaQuery.paddingOf(context).top + 48, AppSpace.margin, 96),
+                child: const SizedBox(width: double.infinity, child: _BrandBlock()),
+              ),
+              Transform.translate(
+                offset: const Offset(0, -64),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpace.margin),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 420),
+                    child: AutofillGroup(
+                      child: Form(
+                        key: _formKey,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            Text('Welcome back', style: AppText.headlineLg),
-                            Gap.xs,
-                            Text('Sign in to manage your atelier.', style: AppText.bodyMd.copyWith(color: AppColors.onSurfaceVariant)),
-                            Gap.lg,
-                            if (_formError != null || notice != null) ...[
-                              FormBanner(message: _formError ?? notice!, isError: _formError != null),
-                              Gap.md,
-                            ],
-                            AppTextField(
-                              label: 'Email',
-                              controller: _email,
-                              hint: 'you@example.com',
-                              keyboardType: TextInputType.emailAddress,
-                              textInputAction: TextInputAction.next,
-                              autofillHints: const [AutofillHints.email, AutofillHints.username],
-                              prefixIcon: Symbols.mail,
-                              errorText: _fieldErrors['email']?.first,
-                              validator: (v) {
-                                final value = v?.trim() ?? '';
-                                if (value.isEmpty) return 'Enter your email.';
-                                if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(value)) return 'Enter a valid email address.';
-                                return null;
-                              },
+                            AppCard(
+                              padding: const EdgeInsets.all(AppSpace.lg),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Text('Welcome back', style: AppText.headlineLg),
+                                  Gap.xs,
+                                  Text('Sign in to manage your atelier.', style: AppText.bodyMd.copyWith(color: AppColors.onSurfaceVariant)),
+                                  Gap.lg,
+                                  if (_formError != null || notice != null) ...[FormBanner(message: _formError ?? notice!, isError: _formError != null), Gap.md],
+                                  AppTextField(
+                                    label: 'Email',
+                                    controller: _email,
+                                    hint: 'you@example.com',
+                                    keyboardType: TextInputType.emailAddress,
+                                    textInputAction: TextInputAction.next,
+                                    autofillHints: const [AutofillHints.email, AutofillHints.username],
+                                    prefixIcon: Symbols.mail,
+                                    errorText: _fieldErrors['email']?.first,
+                                    validator: (v) {
+                                      final value = v?.trim() ?? '';
+                                      if (value.isEmpty) return 'Enter your email.';
+                                      if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(value)) return 'Enter a valid email address.';
+                                      return null;
+                                    },
+                                  ),
+                                  Gap.md,
+                                  AppTextField(
+                                    label: 'Password',
+                                    controller: _password,
+                                    obscure: true,
+                                    textInputAction: TextInputAction.done,
+                                    autofillHints: const [AutofillHints.password],
+                                    prefixIcon: Symbols.lock,
+                                    errorText: _fieldErrors['password']?.first,
+                                    onSubmitted: (_) => _submit(),
+                                    validator: (v) => (v == null || v.isEmpty) ? 'Enter your password.' : null,
+                                  ),
+                                  Gap.lg,
+                                  AppButton(label: 'Sign In', icon: Symbols.login, expand: true, loading: _submitting, onPressed: _submit),
+                                ],
+                              ),
                             ),
-                            Gap.md,
-                            AppTextField(
-                              label: 'Password',
-                              controller: _password,
-                              obscure: true,
-                              textInputAction: TextInputAction.done,
-                              autofillHints: const [AutofillHints.password],
-                              prefixIcon: Symbols.lock,
-                              errorText: _fieldErrors['password']?.first,
-                              onSubmitted: (_) => _submit(),
-                              validator: (v) => (v == null || v.isEmpty) ? 'Enter your password.' : null,
-                            ),
                             Gap.lg,
-                            AppButton(
-                              label: 'Sign In',
-                              icon: Symbols.login,
-                              expand: true,
-                              loading: _submitting,
-                              onPressed: _submit,
+                            Text(
+                              'Forgot your password? Your system administrator can reset it for you.',
+                              style: AppText.bodySm.copyWith(color: AppColors.onSurfaceVariant),
+                              textAlign: TextAlign.center,
                             ),
                           ],
                         ),
                       ),
-                      Gap.lg,
-                      Text(
-                        'Forgot your password? Your system administrator can reset it for you.',
-                        style: AppText.bodySm.copyWith(color: AppColors.onSurfaceVariant),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ),
-            ),
+            ],
           ),
         ),
       ),
@@ -154,11 +159,38 @@ class _BrandBlock extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        const BrandMark(size: 56),
-        Gap.md,
-        Text('Nutɔfe', style: AppText.displayLgMobile, textAlign: TextAlign.center),
+        const BrandMark(size: 64, onDark: true),
+        Gap.lg,
+        Text(
+          'Nutɔfe',
+          style: AppText.displayLg.copyWith(color: AppColors.onPrimary),
+          textAlign: TextAlign.center,
+        ),
         Gap.xs,
-        Text('Bespoke tailoring studio', style: AppText.bodyMd.copyWith(color: AppColors.onSurfaceVariant), textAlign: TextAlign.center),
+        Text(
+          'Bespoke tailoring studio',
+          style: AppText.bodyLg.copyWith(color: AppColors.primaryFixedDim),
+          textAlign: TextAlign.center,
+        ),
+        Gap.md,
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(color: AppColors.onPrimary.withValues(alpha: 0.1), borderRadius: AppRadius.full),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 6,
+                height: 6,
+                decoration: const BoxDecoration(color: AppColors.tertiaryFixedDim, shape: BoxShape.circle),
+              ),
+              const SizedBox(width: 6),
+              Flexible(
+                child: FittedBox(fit: BoxFit.scaleDown, child: Text('PRODUCTION · MEASUREMENTS · SCHEDULE', style: AppText.labelSm.copyWith(color: AppColors.primaryFixed, fontSize: 10))),
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }

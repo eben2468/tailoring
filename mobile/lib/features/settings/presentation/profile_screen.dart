@@ -19,6 +19,7 @@ import '../../../core/widgets/menu_row.dart';
 import '../../../core/widgets/section_header.dart';
 import '../../../core/widgets/state_views.dart';
 import '../../auth/application/session_controller.dart';
+import '../../sync/application/sync_providers.dart';
 
 /// Own profile: name + phone (email and role are managed by the admin), plus session controls.
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -78,6 +79,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     if (!ok) return;
     try {
       await ref.read(sessionControllerProvider.notifier).signOutEverywhere();
+      ref.read(localStoreProvider).wipe();
     } on ApiException catch (e) {
       if (mounted) showAppSnack(context, e.message, isError: true);
     }

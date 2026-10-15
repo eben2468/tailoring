@@ -4,6 +4,11 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// Firebase Cloud Messaging (push) needs app/google-services.json (git-ignored). Without it the app still builds and runs, with push off.
+if (file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
+}
+
 android {
     namespace = "com.nutofe.nutofe"
     compileSdk = flutter.compileSdkVersion

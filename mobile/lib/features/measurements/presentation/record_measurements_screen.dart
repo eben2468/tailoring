@@ -20,6 +20,7 @@ import '../../../core/widgets/segmented_tabs.dart';
 import '../../../core/widgets/state_views.dart';
 import '../../customers/application/customer_providers.dart';
 import '../../customers/domain/customer.dart';
+import '../../sync/application/sync_providers.dart';
 import '../application/measurement_providers.dart';
 import '../domain/measurement.dart';
 import 'measurement_widgets.dart';
@@ -44,10 +45,7 @@ class RecordMeasurementsScreen extends ConsumerWidget {
           title: 'Record measurements',
           body: ErrorView(
             error: error,
-            onRetry: () => ref
-              ..invalidate(customerProvider(customerId))
-              ..invalidate(measurementFieldsProvider)
-              ..invalidate(currentMeasurementsProvider(customerId)),
+            onRetry: () => ref.invalidate(bootstrapProvider),
           ),
         ),
       _ => const DetailScaffold(title: 'Record measurements', body: LoadingView()),

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../core/widgets/app_top_bar.dart';
 import '../features/auth/application/session_controller.dart';
+import '../features/notifications/application/notification_providers.dart';
 import 'routes.dart';
 
 /// Scaffold for a bottom-nav section: the frosted section header (logo, name, bell, avatar)
@@ -23,6 +24,7 @@ class SectionScaffold extends ConsumerWidget {
       appBar: AppTopBar.section(
         title: title,
         userName: user?.fullName,
+        hasUnread: ref.watch(unreadNotificationsProvider) > 0,
         onNotifications: () => context.push(Routes.notifications),
         onAvatar: () => context.push(Routes.profile),
       ),
@@ -50,6 +52,7 @@ class DetailScaffold extends ConsumerWidget {
         title: title,
         userName: user?.fullName,
         actions: actions,
+        hasUnread: ref.watch(unreadNotificationsProvider) > 0,
         onNotifications: () => context.push(Routes.notifications),
         onAvatar: () => context.push(Routes.profile),
       ),

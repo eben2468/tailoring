@@ -15,6 +15,8 @@ import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/feedback.dart';
 import '../../../core/widgets/gap.dart';
+import '../../../core/widgets/bottom_action_bar.dart';
+import '../../../core/widgets/header_icon_button.dart';
 import '../../../core/widgets/initials_avatar.dart';
 import '../../../core/widgets/menu_row.dart';
 import '../../../core/widgets/segmented_tabs.dart';
@@ -25,6 +27,7 @@ import '../../measurements/domain/measurement.dart';
 import '../../measurements/presentation/measurement_widgets.dart';
 import '../../jobs/application/job_providers.dart';
 import '../../jobs/presentation/job_widgets.dart';
+import '../../sync/application/sync_providers.dart';
 import '../application/customer_providers.dart';
 import '../domain/customer.dart';
 
@@ -42,13 +45,7 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
   int _tab = 0;
   MeasurementUnit? _unitOverride;
 
-  Future<void> _refresh() async {
-    ref
-      ..invalidate(customerProvider(widget.customerId))
-      ..invalidate(currentMeasurementsProvider(widget.customerId))
-      ..invalidate(measurementHistoryProvider(widget.customerId));
-    await ref.read(customerProvider(widget.customerId).future);
-  }
+  Future<void> _refresh() => ref.read(syncControllerProvider.notifier).syncNow();
 
   @override
   Widget build(BuildContext context) {
@@ -58,12 +55,15 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
       title: 'Customer',
       actions: [
         if (customer.value != null)
-          IconButton(
-            tooltip: 'Edit customer',
-            icon: const Icon(Symbols.edit, size: 22, color: AppColors.onSurfaceVariant),
-            onPressed: () => context.push(Routes.customerEdit(widget.customerId)),
-          ),
+          HeaderIconButton(icon: Symbols.edit, tooltip: 'Edit customer', onPressed: () => context.push(Routes.customerEdit(widget.customerId))),
       ],
+      // Stitch dossier: a permanent "+ New Commission for Kofi" button.
+      bottomBar: switch (customer.value) {
+        final c? when !c.isArchived => BottomActionBar(
+            child: AppButton(label: 'New Commission for ${c.fullName.trim().split(RegExp(r'\s+')).first}', icon: Symbols.add_circle, expand: true, onPressed: () => context.push(Routes.jobNew(customerId: c.id))),
+          ),
+        _ => null,
+      },
       body: switch (customer) {
         AsyncData(:final value) => RefreshIndicator(
             edgeOffset: MediaQuery.paddingOf(context).top + 64,
@@ -96,7 +96,7 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
               ],
             ),
           ),
-        AsyncError(:final error) => ErrorView(error: error, onRetry: () => ref.invalidate(customerProvider(widget.customerId))),
+        AsyncError(:final error) => ErrorView(error: error, onRetry: () => ref.invalidate(bootstrapProvider)),
         _ => const LoadingView(),
       },
     );
@@ -302,9 +302,7 @@ class _MeasurementsTab extends ConsumerWidget {
         ]),
       (AsyncError(:final error), _) || (_, AsyncError(:final error)) => ErrorView(
           error: error,
-          onRetry: () => ref
-            ..invalidate(measurementFieldsProvider)
-            ..invalidate(currentMeasurementsProvider(customer.id)),
+          onRetry: () => ref.invalidate(bootstrapProvider),
         ),
       _ => const Padding(padding: EdgeInsets.all(AppSpace.xl), child: LoadingView()),
     };
@@ -321,12 +319,6 @@ class _CommissionsTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final query = JobQuery(filter: 'any', customerId: customer.id);
     final jobs = ref.watch(jobListProvider(query));
-    final newJob = AppButton(
-      label: 'New Commission',
-      icon: Symbols.add,
-      expand: true,
-      onPressed: customer.isArchived ? null : () => context.push(Routes.jobNew(customerId: customer.id)),
-    );
 
     return switch (jobs) {
       AsyncData(:final value) when value.items.isEmpty => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -334,28 +326,14 @@ class _CommissionsTab extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(vertical: AppSpace.xl),
             child: MessageView(icon: Symbols.content_cut, title: 'No jobs yet', message: 'Jobs for ${customer.fullName.split(' ').first} will be listed here.'),
           ),
-          Gap.md,
-          newJob,
         ]),
       AsyncData(:final value) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          newJob,
-          Gap.md,
           for (final job in value.items) ...[
             JobCard(job: job, compact: true, showCustomer: false, onTap: () => context.push(Routes.job(job.id))),
             Gap.sm,
           ],
-          if (value.hasMore)
-            Center(
-              child: AppButton(
-                label: 'Load more',
-                variant: AppButtonVariant.tonal,
-                size: AppButtonSize.medium,
-                loading: value.loadingMore,
-                onPressed: () => ref.read(jobListProvider(query).notifier).loadMore(),
-              ),
-            ),
         ]),
-      AsyncError(:final error) => ErrorView(error: error, onRetry: () => ref.invalidate(jobListProvider(query))),
+      AsyncError(:final error) => ErrorView(error: error, onRetry: () => ref.invalidate(bootstrapProvider)),
       _ => const Padding(padding: EdgeInsets.all(AppSpace.xl), child: LoadingView()),
     };
   }

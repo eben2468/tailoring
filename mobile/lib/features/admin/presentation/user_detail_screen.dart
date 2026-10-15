@@ -192,14 +192,37 @@ class _InfoLine extends StatelessWidget {
 }
 
 /// Bottom sheet asking for a temporary password (server enforces the policy).
-Future<String?> _askNewPassword(BuildContext context, String name) {
+Future<String?> _askNewPassword(BuildContext context, String name) => showModalBottomSheet<String>(
+      context: context,
+      useRootNavigator: true, // above the bottom navigation and timer bar
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) => _PasswordSheet(name: name),
+    );
+
+/// Owns its controller, so it is disposed with the sheet (after the closing animation).
+class _PasswordSheet extends StatefulWidget {
+  const _PasswordSheet({required this.name});
+
+  final String name;
+
+  @override
+  State<_PasswordSheet> createState() => _PasswordSheetState();
+}
+
+class _PasswordSheetState extends State<_PasswordSheet> {
   final controller = TextEditingController();
-  return showModalBottomSheet<String>(
-    context: context,
-    useRootNavigator: true, // above the bottom navigation and timer bar
-    isScrollControlled: true,
-    useSafeArea: true,
-    builder: (context) => Padding(
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final name = widget.name;
+    return Padding(
       padding: EdgeInsets.fromLTRB(AppSpace.margin, 0, AppSpace.margin, AppSpace.lg + MediaQuery.viewInsetsOf(context).bottom),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -220,6 +243,6 @@ Future<String?> _askNewPassword(BuildContext context, String name) {
           ),
         ],
       ),
-    ),
-  ).whenComplete(controller.dispose);
+    );
+  }
 }

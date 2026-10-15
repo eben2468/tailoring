@@ -20,6 +20,7 @@ import '../../../core/widgets/menu_row.dart';
 import '../../../core/widgets/section_header.dart';
 import '../../../core/widgets/state_views.dart';
 import '../../../core/widgets/status_pill.dart';
+import '../../sync/application/sync_providers.dart';
 import '../application/job_providers.dart';
 import '../domain/job.dart';
 import 'job_sheets.dart';
@@ -32,7 +33,7 @@ class GarmentTypesScreen extends ConsumerWidget {
     final name = await askText(context, title: 'New garment type', label: 'Name', hint: 'e.g. Smock (Fugu)', confirmLabel: 'Continue', maxLength: 100);
     if (name == null || !context.mounted) return;
     try {
-      final types = await ref.read(taskTypesProvider.future);
+      final types = ref.read(taskTypesProvider).value ?? const <TaskType>[];
       final work = types.where((t) => !t.isMilestone).toList();
       final ready = types.where((t) => t.code == 'ready_for_collection').firstOrNull;
       // Start from a minimal routing the owner then edits: first work stage + Ready for Collection.
@@ -86,7 +87,7 @@ class GarmentTypesScreen extends ConsumerWidget {
             AppButton(label: 'Add garment type', icon: Symbols.add, variant: AppButtonVariant.tonal, expand: true, onPressed: () => _add(context, ref)),
           ],
         ),
-        AsyncError(:final error) => ErrorView(error: error, onRetry: () => ref.invalidate(allJobTypesProvider)),
+        AsyncError(:final error) => ErrorView(error: error, onRetry: () => ref.invalidate(bootstrapProvider)),
         _ => const LoadingView(),
       },
     );
@@ -112,7 +113,7 @@ class GarmentTemplateScreen extends ConsumerWidget {
       },
       AsyncError(:final error) => DetailScaffold(
         title: 'Garment',
-        body: ErrorView(error: error, onRetry: () => ref.invalidate(allJobTypesProvider)),
+        body: ErrorView(error: error, onRetry: () => ref.invalidate(bootstrapProvider)),
       ),
       _ => const DetailScaffold(title: 'Garment', body: LoadingView()),
     };
@@ -157,7 +158,7 @@ class _TemplateEditorState extends ConsumerState<_TemplateEditor> {
   int get _total => _rows.fold(0, (sum, r) => sum + (r.taskType.isMilestone ? 0 : (Fmt.parseHours(r.hours.text) ?? 0)));
 
   Future<void> _addStage() async {
-    final types = await ref.read(taskTypesProvider.future);
+    final types = ref.read(taskTypesProvider).value ?? const <TaskType>[];
     if (!mounted) return;
     final picked = await showModalBottomSheet<TaskType>(
       context: context,

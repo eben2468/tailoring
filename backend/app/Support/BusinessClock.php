@@ -53,9 +53,15 @@ final class BusinessClock
         return max(1, (int) ($this->setting('timer.review_threshold_hours') ?? 12)) * 3600;
     }
 
+    /** tools.maintenance_due_soon_days: maintenance due within this many days (today included) is "due soon". */
+    public function maintenanceDueSoonDays(): int
+    {
+        return max(0, (int) ($this->setting('tools.maintenance_due_soon_days') ?? 7));
+    }
+
     private function setting(string $key): mixed
     {
-        $this->settings ??= Setting::getMany(['business.timezone', 'jobs.due_soon_days', 'jobs.number_format', 'timer.review_threshold_hours']);
+        $this->settings ??= Setting::getMany(['business.timezone', 'jobs.due_soon_days', 'jobs.number_format', 'timer.review_threshold_hours', 'tools.maintenance_due_soon_days']);
 
         return $this->settings[$key] ?? null;
     }

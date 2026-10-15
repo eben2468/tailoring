@@ -19,6 +19,7 @@ import '../../../core/widgets/status_pill.dart';
 import '../../jobs/application/job_providers.dart';
 import '../../jobs/domain/job.dart';
 import '../../jobs/presentation/job_sheets.dart';
+import '../../sync/application/sync_providers.dart';
 import '../application/timer_providers.dart';
 import '../domain/timer.dart';
 import 'timer_widgets.dart';
@@ -57,10 +58,7 @@ class WorkLogsScreen extends ConsumerWidget {
           : null,
       body: RefreshIndicator(
         edgeOffset: MediaQuery.paddingOf(context).top + 64,
-        onRefresh: () async {
-          ref.invalidate(workLogsProvider(taskId));
-          await ref.read(workLogsProvider(taskId).future);
-        },
+        onRefresh: () => ref.read(syncControllerProvider.notifier).syncNow(),
         child: ListView(
           padding: belowHeader(context, bottom: 24),
           children: [
@@ -87,7 +85,7 @@ class WorkLogsScreen extends ConsumerWidget {
                   ],
                 ],
               ),
-              AsyncError(:final error) => ErrorView(error: error, onRetry: () => ref.invalidate(workLogsProvider(taskId))),
+              AsyncError(:final error) => ErrorView(error: error, onRetry: () => ref.invalidate(bootstrapProvider)),
               _ => const Padding(padding: EdgeInsets.all(AppSpace.xl), child: LoadingView()),
             },
           ],
@@ -198,15 +196,13 @@ class _EntrySheetState extends ConsumerState<_EntrySheet> {
 
   DateTime _at(TimeOfDay t) => DateTime(_day.year, _day.month, _day.day, t.hour, t.minute);
 
-  Future<void> _run(Future<WorkLogResult> Function() call, String success) async {
+  Future<void> _run(Future<void> Function() call, String success) async {
     setState(() {
       _busy = true;
       _error = null;
     });
     try {
-      final result = await call();
-      if (ref.exists(jobProvider(widget.jobId))) ref.read(jobProvider(widget.jobId).notifier).replace(result.job);
-      ref.invalidate(activeTimerProvider);
+      await call();
       if (mounted) {
         showAppSnack(context, success);
         Navigator.of(context).pop(true);
@@ -224,7 +220,7 @@ class _EntrySheetState extends ConsumerState<_EntrySheet> {
     final api = ref.read(timerApiProvider);
     final entry = widget.entry;
     if (_running) {
-      await _run(() => api.updateEntry(entry!, note: _note.text), 'Note saved.');
+      await _run(() => api.updateEntry(entry!.id, entry.version, note: _note.text), 'Note saved.');
       return;
     }
     final start = _at(_start);
@@ -233,7 +229,7 @@ class _EntrySheetState extends ConsumerState<_EntrySheet> {
     if (entry == null) {
       await _run(() => api.addEntry(widget.task.id, start: start, end: end, note: _note.text), 'Work added to ${widget.task.name}.');
     } else {
-      await _run(() => api.updateEntry(entry, start: start, end: end, note: _note.text), 'Entry corrected.');
+      await _run(() => api.updateEntry(entry.id, entry.version, start: start, end: end, note: _note.text), 'Entry corrected.');
     }
   }
 

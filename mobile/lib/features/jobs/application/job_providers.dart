@@ -1,24 +1,28 @@
-import 'dart:async';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/providers.dart';
-import '../../customers/application/customer_providers.dart';
+import '../../../core/local/local_store.dart';
+import '../../../core/network/api_exception.dart';
+import '../../sync/application/sync_providers.dart';
 import '../data/jobs_api.dart';
 import '../domain/job.dart';
 
-final jobsApiProvider = Provider<JobsApi>((ref) => JobsApi(ref.watch(apiClientProvider)));
+final jobsApiProvider = Provider<JobsApi>((ref) => JobsApi(ref.watch(syncEngineProvider)));
 
 /// Active garment types with their routing templates (create-job screen).
-final jobTypesProvider = FutureProvider.autoDispose<List<JobType>>((ref) => ref.watch(jobsApiProvider).jobTypes());
+final jobTypesProvider = Provider<AsyncValue<List<JobType>>>(
+  (ref) => fromStore(ref, (p) => p.config.jobTypes.where((t) => t['is_active'] != false).map(JobType.fromJson).toList()),
+);
 
-/// All garment types incl. inactive (settings).
-final allJobTypesProvider = FutureProvider.autoDispose<List<JobType>>((ref) => ref.watch(jobsApiProvider).jobTypes(includeInactive: true));
+/// All garment types incl. hidden ones (settings).
+final allJobTypesProvider = Provider<AsyncValue<List<JobType>>>((ref) => fromStore(ref, (p) => p.config.jobTypes.map(JobType.fromJson).toList()));
 
-final taskTypesProvider = FutureProvider.autoDispose<List<TaskType>>((ref) => ref.watch(jobsApiProvider).taskTypes());
+/// Active production stages.
+final taskTypesProvider = Provider<AsyncValue<List<TaskType>>>(
+  (ref) => fromStore(ref, (p) => p.config.taskTypes.where((t) => t['is_active'] != false).map(TaskType.fromJson).toList()),
+);
 
 /// Filter-chip counts; `null` = all customers.
-final jobCountsProvider = FutureProvider.autoDispose.family<JobCounts, String?>((ref, customerId) => ref.watch(jobsApiProvider).counts(customerId: customerId));
+final jobCountsProvider = Provider.family<AsyncValue<JobCounts>, String?>((ref, customerId) => fromStore(ref, (p) => JobCounts(p.jobCounts(customerId: customerId))));
 
 /// The list chips, in display order (API filter → label).
 const jobFilters = <(String, String)>[
@@ -47,55 +51,23 @@ class JobQuery {
 }
 
 class JobListState {
-  const JobListState({required this.items, required this.total, required this.page, required this.hasMore, this.loadingMore = false});
+  const JobListState({required this.items});
 
   final List<Job> items;
-  final int total;
-  final int page;
-  final bool hasMore;
-  final bool loadingMore;
 
-  JobListState copyWith({List<Job>? items, int? page, bool? hasMore, bool? loadingMore}) => JobListState(
-        items: items ?? this.items,
-        total: total,
-        page: page ?? this.page,
-        hasMore: hasMore ?? this.hasMore,
-        loadingMore: loadingMore ?? this.loadingMore,
-      );
+  int get total => items.length;
 }
 
-final jobListProvider = AsyncNotifierProvider.autoDispose.family<JobListController, JobListState, JobQuery>(JobListController.new);
+final jobListProvider = Provider.family<AsyncValue<JobListState>, JobQuery>((ref, q) => fromStore(
+      ref,
+      (p) => JobListState(items: p.jobs(filter: q.filter, query: q.text.trim(), customerId: q.customerId).map(Job.fromJson).toList()),
+    ));
 
-class JobListController extends AsyncNotifier<JobListState> {
-  JobListController(this.query);
+/// The job sheet, from the local copy, plus its actions. Every action applies the change (online or
+/// offline) and the sheet updates from the local copy.
+final jobProvider = NotifierProvider.family<JobController, AsyncValue<Job>, String>(JobController.new);
 
-  final JobQuery query;
-
-  @override
-  Future<JobListState> build() async {
-    final first = await ref.read(jobsApiProvider).list(filter: query.filter, query: query.text, customerId: query.customerId);
-    return JobListState(items: first.items, total: first.total, page: first.page, hasMore: first.hasMore);
-  }
-
-  Future<void> loadMore() async {
-    final current = state.value;
-    if (current == null || !current.hasMore || current.loadingMore) return;
-    state = AsyncData(current.copyWith(loadingMore: true));
-    try {
-      final next = await ref.read(jobsApiProvider).list(filter: query.filter, query: query.text, customerId: query.customerId, page: current.page + 1);
-      state = AsyncData(current.copyWith(items: [...current.items, ...next.items], page: next.page, hasMore: next.hasMore, loadingMore: false));
-    } catch (_) {
-      state = AsyncData(current.copyWith(loadingMore: false));
-      rethrow;
-    }
-  }
-}
-
-/// The job sheet. Every mutation returns the recalculated sheet from the server, which replaces the
-/// state directly (no refetch); lists, counts and the customer summary are refreshed afterwards.
-final jobProvider = AsyncNotifierProvider.autoDispose.family<JobController, Job, String>(JobController.new);
-
-class JobController extends AsyncNotifier<Job> {
+class JobController extends Notifier<AsyncValue<Job>> {
   JobController(this.jobId);
 
   final String jobId;
@@ -103,38 +75,18 @@ class JobController extends AsyncNotifier<Job> {
   JobsApi get _api => ref.read(jobsApiProvider);
 
   @override
-  Future<Job> build() => ref.read(jobsApiProvider).get(jobId);
+  AsyncValue<Job> build() => fromStore(ref, (p) {
+        final row = p.store.get(Tables.jobs, jobId);
+        if (row == null || row['deleted_at'] != null) throw const NotFoundException('This job was not found. It may have been removed on another device.');
+        return Job.fromJson(p.job(row, detail: true));
+      });
 
-  /// Runs a mutation; on failure the previous sheet stays and the error is rethrown for the screen.
-  Future<Job> run(Future<Job> Function(JobsApi api) mutation) async {
-    final job = await mutation(_api);
-    state = AsyncData(job);
-    invalidateJobLists(ref, customerId: job.customerId);
-    return job;
-  }
+  /// Runs an action; errors are rethrown for the screen.
+  Future<Job> run(Future<Job> Function(JobsApi api) mutation) => mutation(_api);
 
-  /// A fresher sheet from elsewhere (timer and work-log calls return the job too).
-  void replace(Job job) => state = AsyncData(job);
+  Future<Job> setStatus(JobStatus status, {String? reason, bool force = false}) => _api.setStatus(jobId, status, reason: reason, force: force);
 
-  Future<Job> setStatus(JobStatus status, {String? reason, bool force = false}) => run((api) => api.setStatus(jobId, status, reason: reason, force: force));
+  Future<Job> setTaskStatus(JobTask task, TaskStatus status) => _api.setTaskStatus(task, status);
 
-  Future<Job> setTaskStatus(JobTask task, TaskStatus status) => run((api) => api.setTaskStatus(task, status));
-
-  Future<Job> toggleChecklist(ChecklistItem item) => run((api) => api.setChecklistDone(item, done: !item.isDone));
-}
-
-/// Lists, chip counts and the customer's summary change whenever a job does.
-void invalidateJobLists(Ref ref, {String? customerId}) {
-  ref
-    ..invalidate(jobListProvider)
-    ..invalidate(jobCountsProvider);
-  if (customerId != null) ref.invalidate(customerProvider(customerId));
-}
-
-/// [invalidateJobLists] for screens (after creating or deleting a job).
-void invalidateJobListsFromWidget(WidgetRef ref, {String? customerId}) {
-  ref
-    ..invalidate(jobListProvider)
-    ..invalidate(jobCountsProvider);
-  if (customerId != null) ref.invalidate(customerProvider(customerId));
+  Future<Job> toggleChecklist(ChecklistItem item) => _api.setChecklistDone(item, done: !item.isDone);
 }

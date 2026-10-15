@@ -18,6 +18,7 @@ import '../../../core/widgets/gap.dart';
 import '../../../core/widgets/menu_row.dart';
 import '../../../core/widgets/state_views.dart';
 import '../../../core/widgets/status_pill.dart';
+import '../../sync/application/sync_providers.dart';
 import '../application/job_providers.dart';
 import '../data/jobs_api.dart';
 import '../domain/job.dart';
@@ -32,44 +33,67 @@ Future<String?> askText(
   String? initial,
   int maxLength = 255,
   bool destructive = false,
-}) {
-  final controller = TextEditingController(text: initial);
-  return showModalBottomSheet<String>(
-    context: context,
-    useRootNavigator: true, // above the bottom navigation and timer bar
-    isScrollControlled: true,
-    useSafeArea: true,
-    builder: (context) {
-      void submit() {
-        final text = controller.text.trim();
-        if (text.isNotEmpty) Navigator.of(context).pop(text);
-      }
+}) =>
+    showModalBottomSheet<String>(
+      context: context,
+      useRootNavigator: true, // above the bottom navigation and timer bar
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) => _TextSheet(title: title, label: label, confirmLabel: confirmLabel, hint: hint, initial: initial, maxLength: maxLength, destructive: destructive),
+    );
 
-      return Padding(
-        padding: EdgeInsets.fromLTRB(AppSpace.margin, 0, AppSpace.margin, AppSpace.lg + MediaQuery.viewInsetsOf(context).bottom),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(title, style: AppText.headlineMd),
-            Gap.lg,
-            AppTextField(
-              label: label,
-              hint: hint,
-              controller: controller,
-              autofocus: true,
-              maxLength: maxLength,
-              textCapitalization: TextCapitalization.sentences,
-              textInputAction: TextInputAction.done,
-              onSubmitted: (_) => submit(),
-            ),
-            Gap.lg,
-            AppButton(label: confirmLabel, expand: true, variant: destructive ? AppButtonVariant.danger : AppButtonVariant.primary, onPressed: submit),
-          ],
+/// The sheet owns its controller: it is disposed with the sheet, after the closing animation.
+class _TextSheet extends StatefulWidget {
+  const _TextSheet({required this.title, required this.label, required this.confirmLabel, required this.maxLength, required this.destructive, this.hint, this.initial});
+
+  final String title;
+  final String label;
+  final String confirmLabel;
+  final String? hint;
+  final String? initial;
+  final int maxLength;
+  final bool destructive;
+
+  @override
+  State<_TextSheet> createState() => _TextSheetState();
+}
+
+class _TextSheetState extends State<_TextSheet> {
+  late final _controller = TextEditingController(text: widget.initial);
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final text = _controller.text.trim();
+    if (text.isNotEmpty) Navigator.of(context).pop(text);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(AppSpace.margin, 0, AppSpace.margin, AppSpace.lg + MediaQuery.viewInsetsOf(context).bottom),
+      child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Text(widget.title, style: AppText.headlineMd),
+        Gap.lg,
+        AppTextField(
+          label: widget.label,
+          hint: widget.hint,
+          controller: _controller,
+          autofocus: true,
+          maxLength: widget.maxLength,
+          textCapitalization: TextCapitalization.sentences,
+          textInputAction: TextInputAction.done,
+          onSubmitted: (_) => _submit(),
         ),
-      );
-    },
-  ).whenComplete(controller.dispose);
+        Gap.lg,
+        AppButton(label: widget.confirmLabel, expand: true, variant: widget.destructive ? AppButtonVariant.danger : AppButtonVariant.primary, onPressed: _submit),
+      ]),
+    );
+  }
 }
 
 /// Manual progress prompt. Returns the percentage, NaN to return to calculated progress, or null if cancelled.
@@ -310,6 +334,10 @@ class _TaskSheetState extends ConsumerState<_TaskSheet> {
                 ],
               ),
             ],
+            if (editable && !task.isMilestone && !task.status.isClosed) ...[
+              Gap.sm,
+              _PlanTile(task: task, busy: _busy, onPlan: (start, end) => _run((api) => api.planTask(task, start: start, end: end), success: start == null ? 'Removed from the calendar.' : 'Planned in the calendar.')),
+            ],
             if (editable) ...[
               Gap.lg,
               AppTextField(label: 'Stage name', controller: _name, errorText: _nameError, maxLength: 120, textCapitalization: TextCapitalization.sentences),
@@ -451,11 +479,64 @@ class _AddStageSheetState extends ConsumerState<_AddStageSheet> {
                   ),
                 ],
               ),
-              AsyncError(:final error) => ErrorView(error: error, onRetry: () => ref.invalidate(taskTypesProvider)),
+              AsyncError(:final error) => ErrorView(error: error, onRetry: () => ref.invalidate(bootstrapProvider)),
               _ => const SizedBox(height: 160, child: LoadingView()),
             },
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// "Planned in the calendar": pick a day and start time; the block lasts the stage's remaining
+/// estimate (at least 30 minutes, 2 hours when nothing is estimated).
+class _PlanTile extends StatelessWidget {
+  const _PlanTile({required this.task, required this.busy, required this.onPlan});
+
+  final JobTask task;
+  final bool busy;
+  final void Function(DateTime? start, DateTime? end) onPlan;
+
+  Future<void> _pick(BuildContext context) async {
+    final initial = task.scheduledStart ?? DateTime.now().add(const Duration(days: 1));
+    final day = await showDatePicker(context: context, initialDate: initial, firstDate: DateTime.now().subtract(const Duration(days: 30)), lastDate: DateTime.now().add(const Duration(days: 365)));
+    if (day == null || !context.mounted) return;
+    final time = await showTimePicker(context: context, initialTime: TimeOfDay.fromDateTime(task.scheduledStart ?? DateTime(2000, 1, 1, 8, 30)));
+    if (time == null) return;
+    final start = DateTime(day.year, day.month, day.day, time.hour, time.minute);
+    final seconds = task.remainingSeconds > 0 ? task.remainingSeconds : (task.estimatedSeconds > 0 ? task.estimatedSeconds : 7200);
+    onPlan(start, start.add(Duration(seconds: seconds < 1800 ? 1800 : seconds)));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final start = task.scheduledStart;
+    final end = task.scheduledEnd;
+    String two(int n) => n.toString().padLeft(2, '0');
+    return Material(
+      color: AppColors.surfaceContainerLow,
+      borderRadius: AppRadius.control,
+      child: InkWell(
+        borderRadius: AppRadius.control,
+        onTap: busy ? null : () => _pick(context),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(AppSpace.md, AppSpace.sm, AppSpace.xs, AppSpace.sm),
+          child: Row(children: [
+            const Icon(Symbols.event_upcoming, size: 20, color: AppColors.secondary),
+            Gap.md,
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text('PLANNED IN THE CALENDAR', style: AppText.labelSm.copyWith(color: AppColors.secondary)),
+                Text(
+                  start == null ? 'Not planned · tap to plan' : '${Fmt.date(start)} · ${two(start.hour)}:${two(start.minute)}${end == null ? '' : '–${two(end.hour)}:${two(end.minute)}'}',
+                  style: AppText.titleSm,
+                ),
+              ]),
+            ),
+            if (start != null) IconButton(tooltip: 'Remove from the calendar', onPressed: busy ? null : () => onPlan(null, null), icon: const Icon(Symbols.close, size: 18)),
+          ]),
+        ),
       ),
     );
   }

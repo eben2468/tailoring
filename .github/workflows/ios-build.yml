@@ -1,0 +1,56 @@
+# Builds the iPhone app on a GitHub-hosted Mac (this project is developed on Windows).
+# The result is an UNSIGNED .ipa: install it on an iPhone from Windows with Sideloadly and a free
+# Apple ID (re-install every 7 days), or sign it later with a paid Apple Developer account.
+# Run it from GitHub: Actions → "iOS build" → Run workflow. No secrets are needed or stored.
+name: iOS build
+
+on:
+  workflow_dispatch:
+    inputs:
+      api_base_url:
+        description: 'API address the app uses (e.g. http://10.220.27.94:8080/api/v1 on the hotspot, or the HTTPS VPS later)'
+        required: true
+        default: 'http://10.220.27.94:8080/api/v1'
+
+permissions:
+  contents: read
+
+jobs:
+  ios:
+    runs-on: macos-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.6'   # same as the development PC
+          channel: stable
+          cache: true
+
+      - name: Dependencies
+        run: flutter pub get
+
+      - name: Tests
+        run: flutter test --exclude-tags golden,live
+
+      - name: Build (no code signing)
+        env:
+          API_BASE_URL: ${{ inputs.api_base_url }}   # passed as a variable, never pasted into the script
+        run: flutter build ios --release --no-codesign --dart-define=API_BASE_URL="$API_BASE_URL"
+
+      - name: Package .ipa
+        run: |
+          mkdir -p Payload
+          cp -R build/ios/iphoneos/Runner.app Payload/
+          zip -qr Nutofe-unsigned.ipa Payload
+          ls -lh Nutofe-unsigned.ipa
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Nutofe-iOS-unsigned
+          path: mobile/Nutofe-unsigned.ipa
+          retention-days: 14

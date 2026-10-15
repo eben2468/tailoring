@@ -67,15 +67,13 @@ void main() {
       ..refresh = 'nrt_1'
       ..session = {'user': userJson(name: 'Marcus Owusu'), 'business': businessJson};
     backend = FakeBackend();
-    final kofi = backend.addCustomer('Kofi Mensah', phone: '+233241110001', sets: 2)['id'] as String;
+    final kofi = backend.addCustomer('Kofi Mensah', phone: '+233241110001', stylePreferences: 'Dark matte horn buttons, contrast burgundy cupro lining, hand-embroidered monogram "K.M."')['id'] as String;
     final kwame = backend.addCustomer('Kwame Asante', phone: '+233241110002')['id'] as String;
     final yaw = backend.addCustomer('Yaw Boateng', phone: '+233241110003')['id'] as String;
-    backend
-      ..customers.first['style_preferences'] = 'Dark matte horn buttons, contrast burgundy cupro lining, hand-embroidered monogram "K.M."'
-      ..addSet(kofi, {3: 106.68, 4: 86.36}, at: DateTime.utc(2026, 10, 4));
+    backend.addSet(kofi, {3: 106.68, 4: 86.36}, at: DateTime.utc(2026, 10, 4));
     backend.jobs
       ..addJob(kofi, priority: 'high', dueInDays: 2, done: 2, actualSeconds: {2: 3 * 3600 + 1800}, checklist: ['Assemble canvas chest piece', 'Set sleeves & shoulder pads', 'Waistcoat pocket welts'])
-      ..addJob(kwame, jobTypeId: 6, dueInDays: 1, done: 1)
+      ..addJob(kwame, jobTypeId: 6, dueInDays: 3, done: 1)
       ..addJob(yaw, dueInDays: 4, done: 3, actualSeconds: {3: 5400})
       ..addJob(kofi, jobTypeId: 6, status: 'queued', dueInDays: 12);
   });
@@ -101,6 +99,18 @@ void main() {
     await shoot(tester, 'job_new');
   });
 
+  testWidgets('work timer', (tester) async {
+    final job = backend.jobs.jobs.first;
+    backend.jobs.runTimer(((job['tasks'] as List)[2] as Map)['id'] as String, elapsed: const Duration(hours: 2, minutes: 35, seconds: 44));
+    await pumpApp(tester, height: 1300);
+    await tester.tap(find.text('Open Timer'));
+    // The clock ticks every second: pump frames instead of settling.
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    await expectLater(find.byType(MaterialApp), matchesGoldenFile('goldens/work_timer.png'));
+  });
+
   testWidgets('stage sheet', (tester) async {
     await pumpApp(tester, height: 2300);
     await tester.tap(find.text('View Sheet').first);
@@ -109,3 +119,4 @@ void main() {
     await shoot(tester, 'job_stage_sheet');
   });
 }
+

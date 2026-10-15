@@ -19,6 +19,7 @@ import '../../../core/widgets/gap.dart';
 import '../../../core/widgets/section_header.dart';
 import '../../../core/widgets/segmented_tabs.dart';
 import '../../../core/widgets/state_views.dart';
+import '../../sync/application/sync_providers.dart';
 import '../application/customer_providers.dart';
 import '../domain/customer.dart';
 
@@ -38,7 +39,7 @@ class CustomerFormScreen extends ConsumerWidget {
       AsyncData(:final value) => _CustomerForm(existing: value),
       AsyncError(:final error) => DetailScaffold(
         title: 'Edit customer',
-        body: ErrorView(error: error, onRetry: () => ref.invalidate(customerProvider(customerId!))),
+        body: ErrorView(error: error, onRetry: () => ref.invalidate(bootstrapProvider)),
       ),
       _ => const DetailScaffold(title: 'Edit customer', body: LoadingView()),
     };
@@ -129,12 +130,7 @@ class _CustomerFormState extends ConsumerState<_CustomerForm> {
   }
 
   Future<void> _onDuplicatePhone() async {
-    List<PhoneMatch> matches;
-    try {
-      matches = await ref.read(customersApiProvider).phoneCheck(_phone.text, exceptId: widget.existing?.id);
-    } on ApiException {
-      matches = const [];
-    }
+    final matches = ref.read(customersApiProvider).phoneCheck(_phone.text, exceptId: widget.existing?.id);
     if (!mounted) return;
     final choice = await showModalBottomSheet<String>(
       context: context,
@@ -174,6 +170,7 @@ class _CustomerFormState extends ConsumerState<_CustomerForm> {
                     textCapitalization: TextCapitalization.words,
                     textInputAction: TextInputAction.next,
                     autofocus: _isNew,
+                    prefixIcon: Symbols.person,
                     errorText: _fieldErrors['full_name']?.first,
                     validator: (v) => (v == null || v.trim().length < 2) ? 'Enter the customer\'s full name.' : null,
                   ),
@@ -193,6 +190,7 @@ class _CustomerFormState extends ConsumerState<_CustomerForm> {
                     controller: _phoneAlt,
                     keyboardType: TextInputType.phone,
                     textInputAction: TextInputAction.next,
+                    prefixIcon: Symbols.phone_in_talk,
                     errorText: _fieldErrors['phone_alt']?.first,
                   ),
                   Gap.md,
@@ -206,7 +204,7 @@ class _CustomerFormState extends ConsumerState<_CustomerForm> {
                     validator: (v) => (v == null || v.trim().isEmpty || RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(v.trim())) ? null : 'Enter a valid email address.',
                   ),
                   Gap.md,
-                  AppTextField(label: 'Address (optional)', controller: _address, textCapitalization: TextCapitalization.words, errorText: _fieldErrors['address']?.first),
+                  AppTextField(label: 'Address (optional)', controller: _address, prefixIcon: Symbols.location_on, textCapitalization: TextCapitalization.words, errorText: _fieldErrors['address']?.first),
                 ],
               ),
             ),

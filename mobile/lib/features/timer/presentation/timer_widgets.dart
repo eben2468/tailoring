@@ -68,7 +68,7 @@ class _TickerState extends State<Ticker> {
 
 /// Starts the timer on a stage and opens the timer screen. If another stage is running, offers to switch.
 Future<void> startTimerFlow(BuildContext context, WidgetRef ref, {required String jobId, required String taskId, required String taskName}) async {
-  final controller = ref.read(activeTimerProvider.notifier);
+  final controller = ref.read(timerActionsProvider);
   try {
     await controller.start(taskId);
   } on ConflictException catch (e) {

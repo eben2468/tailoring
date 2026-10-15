@@ -142,7 +142,9 @@ class FormBanner extends StatelessWidget {
         children: [
           Icon(isError ? Symbols.error : Symbols.info, size: 18, color: fg),
           const SizedBox(width: AppSpace.sm),
-          Expanded(child: Text(message, style: AppText.bodyMd.copyWith(color: fg))),
+          Expanded(
+            child: Text(message, style: AppText.bodyMd.copyWith(color: fg)),
+          ),
         ],
       ),
     );

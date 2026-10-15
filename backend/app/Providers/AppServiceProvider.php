@@ -6,6 +6,8 @@ use App\Auth\Permissions;
 use App\Auth\TokenGuard;
 use App\Auth\TokenService;
 use App\Models\User;
+use App\Services\Push\FcmPushSender;
+use App\Services\Push\PushSender;
 use App\Support\BusinessClock;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
@@ -23,6 +25,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(TokenService::class);
         // Business settings (timezone, due-soon days, job number format) are read once per request.
         $this->app->scoped(BusinessClock::class);
+        $this->app->singleton(PushSender::class, fn () => new FcmPushSender(config('services.fcm.credentials')));
     }
 
     public function boot(): void
@@ -44,6 +47,8 @@ class AppServiceProvider extends ServiceProvider
         }
 
         // Login/refresh brute-force protection per client IP (account lockout is separate, in AuthService).
-        RateLimiter::for('auth', fn (Request $request) => Limit::perMinute((int) config('nutofe.auth.attempts_per_minute'))->by('auth|'.$request->ip()));
+        // The assistant may call the language model: protect the (free-tier) quota per user.
+        RateLimiter::for('ai-chat', fn (Request $request) => Limit::perMinute(10)->by('ai-chat|'.($request->user()?->getAuthIdentifier() ?? $request->ip())));
+        RateLimiter::for('auth',fn (Request $request) => Limit::perMinute((int) config('nutofe.auth.attempts_per_minute'))->by('auth|'.$request->ip()));
     }
 }

@@ -19,12 +19,14 @@ final class Permissions
 
     public const ADMIN_SYSTEM = 'admin.system';  // system health / maintenance
 
+    public const RECEIVE_ALERTS = 'alerts';      // receives business notifications (deadlines, stock, maintenance)
+
     public const ROLES = ['owner', 'admin'];
 
-    public const ALL = [self::BUSINESS, self::ADMIN_USERS, self::ADMIN_AUDIT, self::ADMIN_SYSTEM];
+    public const ALL = [self::BUSINESS, self::RECEIVE_ALERTS, self::ADMIN_USERS, self::ADMIN_AUDIT, self::ADMIN_SYSTEM];
 
     private const MAP = [
-        'owner' => [self::BUSINESS],
+        'owner' => [self::BUSINESS, self::RECEIVE_ALERTS],
         'admin' => [self::BUSINESS, self::ADMIN_USERS, self::ADMIN_AUDIT, self::ADMIN_SYSTEM],
     ];
 

@@ -26,6 +26,18 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Nutɔfe connects to your workshop server on this network to sync jobs, customers and stock.</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<!-- Development: the API on the workshop PC (plain HTTP on the local network). Production uses HTTPS on the VPS; remove this then. -->
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

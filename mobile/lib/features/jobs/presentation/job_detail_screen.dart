@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../app/routes.dart';
@@ -10,17 +11,27 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_text.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../core/widgets/hero_panel.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/bottom_action_bar.dart';
 import '../../../core/widgets/feedback.dart';
 import '../../../core/widgets/gap.dart';
+import '../../../core/widgets/header_icon_button.dart';
 import '../../../core/widgets/state_views.dart';
 import '../../../core/widgets/status_pill.dart';
 import '../../customers/application/customer_providers.dart';
+import '../../ai/application/ai_providers.dart';
+import '../../calendar/application/calendar_providers.dart';
+import '../../calendar/domain/calendar.dart';
+import '../../calendar/presentation/calendar_widgets.dart';
+import '../../inventory/application/inventory_providers.dart';
+import '../../inventory/domain/inventory.dart';
+import '../../inventory/presentation/stock_sheet.dart';
 import '../../measurements/application/measurement_providers.dart';
 import '../../timer/application/timer_providers.dart';
 import '../../timer/presentation/timer_widgets.dart';
+import '../../sync/application/sync_providers.dart';
 import '../application/job_providers.dart';
 import '../domain/job.dart';
 import 'job_sheets.dart';
@@ -64,7 +75,12 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
       reason = await askText(context, title: 'Cancel ${job.displayNumber}?', label: 'Reason', hint: 'e.g. Customer changed their mind', confirmLabel: 'Cancel job', destructive: true);
       if (reason == null) return;
     } else if (status == JobStatus.completed) {
-      final ok = await confirmAction(context, title: 'Mark as collected?', message: '${job.customerName} has collected ${job.title}. Collected jobs can no longer be changed.', confirmLabel: 'Mark collected');
+      final ok = await confirmAction(
+        context,
+        title: 'Mark as collected?',
+        message: '${job.customerName} has collected ${job.title}. Collected jobs can no longer be changed.',
+        confirmLabel: 'Mark collected',
+      );
       if (!ok) return;
     }
     if (!mounted || _busy) return;
@@ -104,13 +120,15 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
       case 'progress':
         final percent = await askProgress(context, current: job.progressOverride ?? job.hours.progressPercent, manual: job.progressOverride != null);
         if (percent == null) return;
-        await _act(() => _controller.run((api) => api.setProgressOverride(job.id, percent.isNaN ? null : percent)), success: percent.isNaN ? 'Progress is calculated from hours again.' : 'Progress set manually.');
+        await _act(
+          () => _controller.run((api) => api.setProgressOverride(job.id, percent.isNaN ? null : percent)),
+          success: percent.isNaN ? 'Progress is calculated from hours again.' : 'Progress set manually.',
+        );
       case 'delete':
         final ok = await confirmAction(context, title: 'Delete this draft?', message: '${job.title} for ${job.customerName} will be removed.', confirmLabel: 'Delete draft', destructive: true);
         if (!ok || !mounted) return;
         try {
           await ref.read(jobsApiProvider).deleteDraft(job.id);
-          invalidateJobListsFromWidget(ref, customerId: job.customerId);
           if (mounted) {
             showAppSnack(context, 'Draft deleted.');
             context.pop();
@@ -130,14 +148,12 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
       title: 'Job Details',
       actions: [
         if (job != null && !job.status.isClosed) ...[
-          IconButton(
-            tooltip: 'Edit job',
-            icon: const Icon(Symbols.edit, size: 22, color: AppColors.onSurfaceVariant),
-            onPressed: () => context.push(Routes.jobEdit(job.id)),
-          ),
+          HeaderIconButton(icon: Symbols.edit, tooltip: 'Edit job', onPressed: () => context.push(Routes.jobEdit(job.id))),
+          const SizedBox(width: AppSpace.sm),
           PopupMenuButton<String>(
             tooltip: 'More actions',
-            icon: const Icon(Symbols.more_vert, size: 22, color: AppColors.onSurfaceVariant),
+            padding: EdgeInsets.zero,
+            shape: RoundedRectangleBorder(borderRadius: AppRadius.card),
             onSelected: (a) => _menu(job, a),
             itemBuilder: (_) => [
               if (job.canMoveTo(JobStatus.onHold)) const PopupMenuItem(value: 'hold', child: Text('Put on hold')),
@@ -147,38 +163,46 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
               if (job.status == JobStatus.draft) const PopupMenuItem(value: 'delete', child: Text('Delete draft')),
               if (job.canMoveTo(JobStatus.cancelled)) const PopupMenuItem(value: 'cancel', child: Text('Cancel job')),
             ],
+            child: const HeaderIconButton(icon: Symbols.more_vert),
           ),
         ],
       ],
       bottomBar: job == null ? null : _bottomBar(job),
       body: switch (async) {
         AsyncData(value: final job) => RefreshIndicator(
-            edgeOffset: MediaQuery.paddingOf(context).top + 64,
-            onRefresh: () => ref.refresh(jobProvider(widget.jobId).future),
-            child: ListView(
-              padding: belowHeader(context, bottom: 24),
-              children: [
-                _Heading(job: job),
+          edgeOffset: MediaQuery.paddingOf(context).top + 64,
+          onRefresh: () => ref.read(syncControllerProvider.notifier).syncNow(),
+          child: ListView(
+            padding: belowHeader(context, bottom: 24),
+            children: [
+              _Heading(job: job),
+              Gap.lg,
+              _SummaryCard(job: job),
+              Gap.lg,
+              _ProductionStatusCard(job: job),
+              if (job.currentJobTask case final task? when !task.isMilestone) ...[Gap.lg, _SubtasksCard(job: job, task: task, busy: _busy, onAct: _act)],
+              Gap.lg,
+              _TimelineCard(
+                job: job,
+                onTask: (task) => showTaskSheet(context, jobId: job.id, taskId: task.id),
+              ),
+              if (const [JobStatus.queued, JobStatus.inProgress, JobStatus.onHold].contains(job.status)) ...[Gap.lg, _AiForecastCard(job: job)],
+              Gap.lg,
+              _AppointmentsCard(job: job),
+              Gap.lg,
+              _MaterialsCard(job: job),
+              Gap.lg,
+              _SpecificationsCard(job: job),
+              if (job.status == JobStatus.cancelled && job.cancelReason != null) ...[
                 Gap.lg,
-                _SummaryCard(job: job),
-                Gap.lg,
-                _ProductionStatusCard(job: job),
-                if (job.currentJobTask case final task? when !task.isMilestone) ...[
-                  Gap.lg,
-                  _SubtasksCard(job: job, task: task, busy: _busy, onAct: _act),
-                ],
-                Gap.lg,
-                _TimelineCard(job: job, onTask: (task) => showTaskSheet(context, jobId: job.id, taskId: task.id)),
-                Gap.lg,
-                _SpecificationsCard(job: job),
-                if (job.status == JobStatus.cancelled && job.cancelReason != null) ...[
-                  Gap.lg,
-                  AppCard(child: Text('Cancelled: ${job.cancelReason}', style: AppText.bodyMd.copyWith(color: AppColors.onErrorContainer))),
-                ],
+                AppCard(
+                  child: Text('Cancelled: ${job.cancelReason}', style: AppText.bodyMd.copyWith(color: AppColors.onErrorContainer)),
+                ),
               ],
-            ),
+            ],
           ),
-        AsyncError(:final error) => ErrorView(error: error, onRetry: () => ref.invalidate(jobProvider(widget.jobId))),
+        ),
+        AsyncError(:final error) => ErrorView(error: error, onRetry: () => ref.invalidate(bootstrapProvider)),
         _ => const LoadingView(),
       },
     );
@@ -192,24 +216,29 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
       JobStatus.onHold => ('Resume Production', Symbols.play_arrow, () => _setStatus(job, JobStatus.inProgress)),
       JobStatus.readyForCollection => ('Mark Collected', Symbols.shopping_bag, () => _setStatus(job, JobStatus.completed)),
       JobStatus.queued || JobStatus.inProgress when current != null && !current.isMilestone => (
-          'Mark Stage Complete',
-          Symbols.check_circle,
-          () => _act(() => _controller.setTaskStatus(current, TaskStatus.completed), success: '${current.name} completed.'),
-        ),
+        'Mark Stage Complete',
+        Symbols.check_circle,
+        () => _act(() => _controller.setTaskStatus(current, TaskStatus.completed), success: '${current.name} completed.'),
+      ),
       JobStatus.queued || JobStatus.inProgress => ('Ready for Collection', Symbols.inventory, () => _setStatus(job, JobStatus.readyForCollection)),
       _ => null,
     };
     if (primary == null) return null;
 
     return BottomActionBar(
-      child: Row(children: [
-        Expanded(
-          flex: 2,
-          child: AppButton(label: 'Edit Job', icon: Symbols.edit, variant: AppButtonVariant.tonal, onPressed: _busy ? null : () => context.push(Routes.jobEdit(job.id))),
-        ),
-        Gap.sm,
-        Expanded(flex: 3, child: AppButton(label: primary.$1, icon: primary.$2, loading: _busy, onPressed: primary.$3)),
-      ]),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 2,
+            child: AppButton(label: 'Edit Job', icon: Symbols.edit, variant: AppButtonVariant.tonal, onPressed: _busy ? null : () => context.push(Routes.jobEdit(job.id))),
+          ),
+          Gap.sm,
+          Expanded(
+            flex: 3,
+            child: AppButton(label: primary.$1, icon: primary.$2, loading: _busy, onPressed: primary.$3),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -221,14 +250,17 @@ class _Heading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text('JOB ${job.displayNumber}  ·  ${job.status.label.toUpperCase()}', style: AppText.labelSm.copyWith(color: AppColors.secondary, letterSpacing: 0.8)),
-      const SizedBox(height: 2),
-      GestureDetector(
-        onTap: () => context.push(Routes.customer(job.customerId)),
-        child: Text(job.customerName, style: AppText.headlineLg),
-      ),
-    ]);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('JOB ${job.displayNumber}  ·  ${job.status.label.toUpperCase()}', style: AppText.labelSm.copyWith(color: AppColors.secondary, letterSpacing: 0.8)),
+        const SizedBox(height: 2),
+        GestureDetector(
+          onTap: () => context.push(Routes.customer(job.customerId)),
+          child: Text(job.customerName, style: AppText.headlineLg),
+        ),
+      ],
+    );
   }
 }
 
@@ -240,66 +272,88 @@ class _SummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget dateTile(IconData icon, String caption, DateTime? date, {String? footnote, Color? footnoteColor}) => Expanded(
-          child: InsetTile(
-            padding: const EdgeInsets.all(AppSpace.md),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Row(children: [
+      child: InsetTile(
+        padding: const EdgeInsets.all(AppSpace.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
                 Icon(icon, size: 15, color: AppColors.onSurfaceVariant),
                 const SizedBox(width: 4),
                 Text(caption, style: AppText.labelSm.copyWith(color: AppColors.onSurfaceVariant)),
-              ]),
-              const SizedBox(height: 2),
-              Text(date == null ? 'Not set' : Fmt.date(date), style: AppText.titleSm.copyWith(fontFeatures: const [FontFeature.tabularFigures()])),
-              if (footnote != null) Text(footnote, style: AppText.bodySm.copyWith(color: footnoteColor ?? AppColors.onSurfaceVariant)),
-            ]),
-          ),
-        );
+              ],
+            ),
+            const SizedBox(height: 2),
+            Text(date == null ? 'Not set' : Fmt.date(date), style: AppText.titleSm.copyWith(fontFeatures: const [FontFeature.tabularFigures()])),
+            if (footnote != null) Text(footnote, style: AppText.bodySm.copyWith(color: footnoteColor ?? AppColors.onSurfaceVariant)),
+          ],
+        ),
+      ),
+    );
 
     final days = job.flags.daysUntilDue;
     return AppCard(
       padding: const EdgeInsets.all(AppSpace.lg),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Wrap(spacing: AppSpace.sm, runSpacing: 6, children: [
-          if (job.priority != JobPriority.normal) StatusPill(label: job.priority == JobPriority.urgent ? 'Urgent' : 'High Priority', tone: StatusTone.danger),
-          if (job.dueDate != null && !job.status.isClosed)
-            StatusPill(label: 'Due ${Fmt.shortDate(job.dueDate!)}', tone: job.flags.isOverdue ? StatusTone.danger : (job.flags.isDueSoon ? StatusTone.warning : StatusTone.neutral)),
-          StatusPill(label: job.status.label, tone: jobStatusTone(job.status)),
-        ]),
-        Gap.md,
-        Text(job.title, style: AppText.headlineMd),
-        Text(
-          [if (job.title != job.jobTypeName) job.jobTypeName, ?job.components, '${job.quantity} piece${job.quantity == 1 ? '' : 's'}'].join(' · '),
-          style: AppText.bodySm.copyWith(color: AppColors.onSurfaceVariant),
-        ),
-        if (job.fabricNote != null) ...[
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Wrap(
+            spacing: AppSpace.sm,
+            runSpacing: 6,
+            children: [
+              if (job.priority != JobPriority.normal) StatusPill(label: job.priority == JobPriority.urgent ? 'Urgent' : 'High Priority', tone: StatusTone.danger),
+              if (job.dueDate != null && !job.status.isClosed)
+                StatusPill(label: 'Due ${Fmt.shortDate(job.dueDate!)}', tone: job.flags.isOverdue ? StatusTone.danger : (job.flags.isDueSoon ? StatusTone.warning : StatusTone.neutral)),
+              StatusPill(label: job.status.label, tone: jobStatusTone(job.status)),
+            ],
+          ),
           Gap.md,
-          InsetTile(
-            padding: const EdgeInsets.all(AppSpace.md),
-            child: Row(children: [
-              const Icon(Symbols.texture, size: 22, color: AppColors.onSurfaceVariant),
-              Gap.md,
-              Expanded(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text('Selected Textile', style: AppText.labelSm.copyWith(color: AppColors.onSurfaceVariant)),
-                  Text(job.fabricNote!, style: AppText.titleSm),
-                ]),
+          Text(job.title, style: AppText.headlineMd),
+          Text(
+            [if (job.title != job.jobTypeName) job.jobTypeName, ?job.components, '${job.quantity} piece${job.quantity == 1 ? '' : 's'}'].join(' · '),
+            style: AppText.bodySm.copyWith(color: AppColors.onSurfaceVariant),
+          ),
+          if (job.fabricNote != null) ...[
+            Gap.md,
+            InsetTile(
+              padding: const EdgeInsets.all(AppSpace.md),
+              child: Row(
+                children: [
+                  const Icon(Symbols.texture, size: 22, color: AppColors.onSurfaceVariant),
+                  Gap.md,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Selected Textile', style: AppText.labelSm.copyWith(color: AppColors.onSurfaceVariant)),
+                        Text(job.fabricNote!, style: AppText.titleSm),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            ]),
+            ),
+          ],
+          Gap.md,
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                dateTile(Symbols.calendar_today, 'Ordered', job.orderDate),
+                Gap.sm,
+                dateTile(
+                  Symbols.local_shipping,
+                  'Due',
+                  job.dueDate,
+                  footnote: job.collectionDate != null ? 'Collect ${Fmt.shortDate(job.collectionDate!)}' : (days != null && !job.status.isClosed ? Fmt.dueIn(days) : null),
+                  footnoteColor: job.flags.isOverdue ? AppColors.error : null,
+                ),
+              ],
+            ),
           ),
         ],
-        Gap.md,
-        IntrinsicHeight(child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          dateTile(Symbols.calendar_today, 'Ordered', job.orderDate),
-          Gap.sm,
-          dateTile(
-            Symbols.local_shipping,
-            'Due',
-            job.dueDate,
-            footnote: job.collectionDate != null ? 'Collect ${Fmt.shortDate(job.collectionDate!)}' : (days != null && !job.status.isClosed ? Fmt.dueIn(days) : null),
-            footnoteColor: job.flags.isOverdue ? AppColors.error : null,
-          ),
-        ])),
-      ]),
+      ),
     );
   }
 }
@@ -314,71 +368,95 @@ class _ProductionStatusCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final h = job.hours;
     final current = job.currentTask;
-    return Container(
+    return HeroPanel(
       padding: const EdgeInsets.all(AppSpace.lg),
-      decoration: BoxDecoration(color: AppColors.primaryContainer, borderRadius: AppRadius.card, boxShadow: AppShadows.raised),
-      child: Column(children: [
-        Row(children: [
-          Container(width: 6, height: 6, decoration: const BoxDecoration(color: AppColors.tertiaryFixedDim, shape: BoxShape.circle)),
-          const SizedBox(width: 6),
-          Expanded(child: Text('PRODUCTION STATUS', style: AppText.overline.copyWith(color: AppColors.onPrimaryContainer))),
-          if (current != null && !job.status.isClosed)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(color: AppColors.inverseSurface, borderRadius: AppRadius.full),
-              child: Text(current.isMilestone ? current.name : '${current.typeName} Phase', style: AppText.labelSm.copyWith(color: AppColors.inverseOnSurface)),
-            ),
-        ]),
-        Gap.lg,
-        SizedBox.square(
-          dimension: 148,
-          child: Stack(alignment: Alignment.center, children: [
-            SizedBox.expand(
-              child: CircularProgressIndicator(
-                value: (h.progressPercent / 100).clamp(0, 1).toDouble(),
-                strokeWidth: 10,
-                strokeCap: StrokeCap.round,
-                color: AppColors.secondaryContainer,
-                backgroundColor: AppColors.inverseSurface,
+      watermark: Symbols.content_cut,
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 6,
+                height: 6,
+                decoration: const BoxDecoration(color: AppColors.tertiaryFixedDim, shape: BoxShape.circle),
               ),
-            ),
-            Column(mainAxisSize: MainAxisSize.min, children: [
-              Text.rich(TextSpan(children: [
-                TextSpan(text: '${h.progressPercent.round()}', style: AppText.displayLg.copyWith(color: AppColors.onPrimary, fontFeatures: const [FontFeature.tabularFigures()])),
-                TextSpan(text: '%', style: AppText.headlineMd.copyWith(color: AppColors.onPrimary)),
-              ])),
-              Text(h.isProgressManual ? 'Set manually' : 'Complete', style: AppText.bodySm.copyWith(color: AppColors.onPrimaryContainer)),
-            ]),
-          ]),
-        ),
-        Gap.lg,
-        Text(
-          '${Fmt.hours(h.actualSeconds)} of ${Fmt.hours(h.estimatedSeconds)} Hours Completed',
-          style: AppText.titleSm.copyWith(color: AppColors.onPrimary, fontFeatures: const [FontFeature.tabularFigures()]),
-        ),
-        Gap.sm,
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-          decoration: BoxDecoration(color: AppColors.inverseSurface, borderRadius: AppRadius.full),
-          child: Row(mainAxisSize: MainAxisSize.min, children: [
-            Icon(h.overrunSeconds > 0 ? Symbols.warning : Symbols.hourglass_top, size: 14, color: h.overrunSeconds > 0 ? AppColors.warningAccent : AppColors.inverseOnSurface),
-            const SizedBox(width: 6),
-            Flexible(
-              child: Text(
-              h.overrunSeconds > 0
-                  ? '${Fmt.hours(h.remainingSeconds)} hrs remaining · ${Fmt.hours(h.overrunSeconds)} over'
-                  : '${Fmt.hours(h.remainingSeconds)} hrs remaining to baseline',
-              style: AppText.labelSm.copyWith(color: AppColors.inverseOnSurface),
-              textAlign: TextAlign.center,
-            ),
-            ),
-          ]),
-        ),
-        if (job.status.isInProduction && current != null && !current.isMilestone) ...[
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text('PRODUCTION STATUS', style: AppText.overline.copyWith(color: AppColors.onPrimaryContainer)),
+              ),
+              if (current != null && !job.status.isClosed)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(color: AppColors.inverseSurface, borderRadius: AppRadius.full),
+                  child: Text(current.isMilestone ? current.name : '${current.typeName} Phase', style: AppText.labelSm.copyWith(color: AppColors.inverseOnSurface)),
+                ),
+            ],
+          ),
           Gap.lg,
-          _TimerButton(job: job, current: current),
+          SizedBox.square(
+            dimension: 148,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                SizedBox.expand(
+                  child: CircularProgressIndicator(
+                    value: (h.progressPercent / 100).clamp(0, 1).toDouble(),
+                    strokeWidth: 10,
+                    strokeCap: StrokeCap.round,
+                    color: AppColors.secondaryContainer,
+                    backgroundColor: AppColors.inverseSurface,
+                  ),
+                ),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text.rich(
+                      TextSpan(
+                        children: [
+                          TextSpan(
+                            text: '${h.progressPercent.round()}',
+                            style: AppText.displayLg.copyWith(color: AppColors.onPrimary, fontFeatures: const [FontFeature.tabularFigures()]),
+                          ),
+                          TextSpan(
+                            text: '%',
+                            style: AppText.headlineMd.copyWith(color: AppColors.onPrimary),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Text(h.isProgressManual ? 'Set manually' : 'Complete', style: AppText.bodySm.copyWith(color: AppColors.onPrimaryContainer)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Gap.lg,
+          Text(
+            '${Fmt.hours(h.actualSeconds)} of ${Fmt.hours(h.estimatedSeconds)} Hours Completed',
+            style: AppText.titleSm.copyWith(color: AppColors.onPrimary, fontFeatures: const [FontFeature.tabularFigures()]),
+          ),
+          Gap.sm,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+            decoration: BoxDecoration(color: AppColors.inverseSurface, borderRadius: AppRadius.full),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(h.overrunSeconds > 0 ? Symbols.warning : Symbols.hourglass_top, size: 14, color: h.overrunSeconds > 0 ? AppColors.warningAccent : AppColors.inverseOnSurface),
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Text(
+                    h.overrunSeconds > 0 ? '${Fmt.hours(h.remainingSeconds)} hrs remaining · ${Fmt.hours(h.overrunSeconds)} over' : '${Fmt.hours(h.remainingSeconds)} hrs remaining to baseline',
+                    style: AppText.labelSm.copyWith(color: AppColors.inverseOnSurface),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (job.status.isInProduction && current != null && !current.isMilestone) ...[Gap.lg, _TimerButton(job: job, current: current)],
         ],
-      ]),
+      ),
     );
   }
 }
@@ -405,12 +483,8 @@ class _TimerButton extends ConsumerWidget {
           textStyle: AppText.titleSm,
         ),
         icon: Icon(runningHere ? Symbols.timer : Symbols.play_arrow, size: 20),
-        label: runningHere
-            ? Ticker(builder: (_, now) => Text('Timer running · ${clockText(timer.elapsed(now))}'))
-            : Text('Start Work Timer (${current.typeName})'),
-        onPressed: runningHere
-            ? () => context.push(Routes.taskTimer(job.id, timer.taskId))
-            : () => startTimerFlow(context, ref, jobId: job.id, taskId: current.id, taskName: current.name),
+        label: runningHere ? Ticker(builder: (_, now) => Text('Timer running · ${clockText(timer.elapsed(now))}')) : Text('Start Work Timer (${current.typeName})'),
+        onPressed: runningHere ? () => context.push(Routes.taskTimer(job.id, timer.taskId)) : () => startTimerFlow(context, ref, jobId: job.id, taskId: current.id, taskName: current.name),
       ),
     );
   }
@@ -432,45 +506,50 @@ class _SubtasksCard extends ConsumerWidget {
 
     return AppCard(
       padding: const EdgeInsets.all(AppSpace.lg),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Row(children: [
-          const Icon(Symbols.checklist, size: 20, color: AppColors.secondary),
-          Gap.sm,
-          Expanded(child: Text('Active Subtasks', style: AppText.titleSm)),
-          Text('Stage ${job.stepIndex} of ${job.stepTotal}', style: AppText.labelMd.copyWith(color: AppColors.onSurfaceVariant)),
-        ]),
-        const SizedBox(height: 2),
-        Text(task.name, style: AppText.bodySm.copyWith(color: AppColors.onSurfaceVariant)),
-        Gap.md,
-        if (task.checklist.isEmpty)
-          Padding(
-            padding: const EdgeInsets.only(bottom: AppSpace.sm),
-            child: Text('Break this stage into small steps to tick off as you go.', style: AppText.bodySm.copyWith(color: AppColors.onSurfaceVariant)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const Icon(Symbols.checklist, size: 20, color: AppColors.secondary),
+              Gap.sm,
+              Expanded(child: Text('Active Subtasks', style: AppText.titleSm)),
+              Text('Stage ${job.stepIndex} of ${job.stepTotal}', style: AppText.labelMd.copyWith(color: AppColors.onSurfaceVariant)),
+            ],
           ),
-        for (final item in task.checklist) ...[
-          _ChecklistRow(
-            item: item,
-            isNext: item == next,
-            onToggle: editable && !busy ? () => onAct(() => controller.toggleChecklist(item)) : null,
-            onDelete: editable ? () => onAct(() => controller.run((api) => api.deleteChecklistItem(item.id)), success: 'Subtask removed.') : null,
-          ),
-          Gap.sm,
-        ],
-        if (editable)
-          Align(
-            alignment: Alignment.centerLeft,
-            child: AppButton(
-              label: 'Add subtask',
-              icon: Symbols.add,
-              variant: AppButtonVariant.text,
-              size: AppButtonSize.small,
-              onPressed: () async {
-                final label = await askText(context, title: 'New subtask', label: 'Subtask', hint: 'e.g. Set sleeves & shoulder pads', confirmLabel: 'Add', maxLength: 150);
-                if (label != null) await onAct(() => controller.run((api) => api.addChecklistItem(task.id, label)));
-              },
+          const SizedBox(height: 2),
+          Text(task.name, style: AppText.bodySm.copyWith(color: AppColors.onSurfaceVariant)),
+          Gap.md,
+          if (task.checklist.isEmpty)
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpace.sm),
+              child: Text('Break this stage into small steps to tick off as you go.', style: AppText.bodySm.copyWith(color: AppColors.onSurfaceVariant)),
             ),
-          ),
-      ]),
+          for (final item in task.checklist) ...[
+            _ChecklistRow(
+              item: item,
+              isNext: item == next,
+              onToggle: editable && !busy ? () => onAct(() => controller.toggleChecklist(item)) : null,
+              onDelete: editable ? () => onAct(() => controller.run((api) => api.deleteChecklistItem(item.id)), success: 'Subtask removed.') : null,
+            ),
+            Gap.sm,
+          ],
+          if (editable)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: AppButton(
+                label: 'Add subtask',
+                icon: Symbols.add,
+                variant: AppButtonVariant.text,
+                size: AppButtonSize.small,
+                onPressed: () async {
+                  final label = await askText(context, title: 'New subtask', label: 'Subtask', hint: 'e.g. Set sleeves & shoulder pads', confirmLabel: 'Add', maxLength: 150);
+                  if (label != null) await onAct(() => controller.run((api) => api.addChecklistItem(task.id, label)));
+                },
+              ),
+            ),
+        ],
+      ),
     );
   }
 }
@@ -495,31 +574,33 @@ class _ChecklistRow extends StatelessWidget {
         onLongPress: onDelete,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpace.md, vertical: AppSpace.md),
-          child: Row(children: [
-            AnimatedContainer(
-              duration: AppMotion.fast,
-              width: 22,
-              height: 22,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: item.isDone ? AppColors.tertiaryFixedDim : AppColors.surfaceContainerLowest,
-                border: item.isDone ? null : Border.all(color: isNext ? AppColors.secondary : AppColors.outlineVariant, width: 1.5),
+          child: Row(
+            children: [
+              AnimatedContainer(
+                duration: AppMotion.fast,
+                width: 22,
+                height: 22,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: item.isDone ? AppColors.tertiaryFixedDim : AppColors.surfaceContainerLowest,
+                  border: item.isDone ? null : Border.all(color: isNext ? AppColors.secondary : AppColors.outlineVariant, width: 1.5),
+                ),
+                child: item.isDone ? const Icon(Symbols.check, size: 15, color: AppColors.tertiaryContainer, weight: 700) : null,
               ),
-              child: item.isDone ? const Icon(Symbols.check, size: 15, color: AppColors.tertiaryContainer, weight: 700) : null,
-            ),
-            Gap.md,
-            Expanded(
-              child: Text(
-                item.label,
-                style: AppText.bodyMd.copyWith(
-                  color: item.isDone ? AppColors.onSurfaceVariant : AppColors.onSurface,
-                  decoration: item.isDone ? TextDecoration.lineThrough : null,
-                  fontWeight: isNext ? FontWeight.w600 : null,
+              Gap.md,
+              Expanded(
+                child: Text(
+                  item.label,
+                  style: AppText.bodyMd.copyWith(
+                    color: item.isDone ? AppColors.onSurfaceVariant : AppColors.onSurface,
+                    decoration: item.isDone ? TextDecoration.lineThrough : null,
+                    fontWeight: isNext ? FontWeight.w600 : null,
+                  ),
                 ),
               ),
-            ),
-            Text(item.isDone ? 'Done' : (isNext ? 'Next' : 'Pending'), style: AppText.labelSm.copyWith(color: isNext ? AppColors.secondary : AppColors.onSurfaceVariant)),
-          ]),
+              Text(item.isDone ? 'Done' : (isNext ? 'Next' : 'Pending'), style: AppText.labelSm.copyWith(color: isNext ? AppColors.secondary : AppColors.onSurfaceVariant)),
+            ],
+          ),
         ),
       ),
     );
@@ -538,30 +619,35 @@ class _TimelineCard extends StatelessWidget {
     var number = 0;
     return AppCard(
       padding: const EdgeInsets.all(AppSpace.lg),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Row(children: [
-          const Icon(Symbols.timeline, size: 20, color: AppColors.onSurface),
-          Gap.sm,
-          Expanded(child: Text('Production Timeline', style: AppText.titleSm)),
-          Text('Stage ${job.stepIndex} of ${job.stepTotal}', style: AppText.labelMd.copyWith(color: AppColors.secondary)),
-        ]),
-        Gap.md,
-        for (final (i, task) in job.tasks.indexed)
-          _TimelineRow(
-            task: task,
-            number: task.status == TaskStatus.skipped ? null : ++number,
-            isCurrent: task.id == current,
-            isLast: i == job.tasks.length - 1,
-            onTap: () => onTask(task),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const Icon(Symbols.timeline, size: 20, color: AppColors.onSurface),
+              Gap.sm,
+              Expanded(child: Text('Production Timeline', style: AppText.titleSm)),
+              Text('Stage ${job.stepIndex} of ${job.stepTotal}', style: AppText.labelMd.copyWith(color: AppColors.secondary)),
+            ],
           ),
-        if (!job.status.isClosed) ...[
-          Gap.sm,
-          Align(
-            alignment: Alignment.centerLeft,
-            child: AppButton(label: 'Add stage', icon: Symbols.add, variant: AppButtonVariant.text, size: AppButtonSize.small, onPressed: () => showAddStageSheet(context, jobId: job.id)),
-          ),
+          Gap.md,
+          for (final (i, task) in job.tasks.indexed)
+            _TimelineRow(task: task, number: task.status == TaskStatus.skipped ? null : ++number, isCurrent: task.id == current, isLast: i == job.tasks.length - 1, onTap: () => onTask(task)),
+          if (!job.status.isClosed) ...[
+            Gap.sm,
+            Align(
+              alignment: Alignment.centerLeft,
+              child: AppButton(
+                label: 'Add stage',
+                icon: Symbols.add,
+                variant: AppButtonVariant.text,
+                size: AppButtonSize.small,
+                onPressed: () => showAddStageSheet(context, jobId: job.id),
+              ),
+            ),
+          ],
         ],
-      ]),
+      ),
     );
   }
 }
@@ -597,63 +683,83 @@ class _TimelineRow extends StatelessWidget {
     final Widget marker = switch (task.status) {
       _ when task.isMilestone => Icon(Symbols.flag, size: 18, color: done ? AppColors.onTertiaryContainer : AppColors.outline),
       TaskStatus.completed => Container(
-          width: 22,
-          height: 22,
-          decoration: const BoxDecoration(color: AppColors.tertiaryFixedDim, shape: BoxShape.circle),
-          child: const Icon(Symbols.check, size: 15, color: AppColors.tertiaryContainer, weight: 700),
-        ),
+        width: 22,
+        height: 22,
+        decoration: const BoxDecoration(color: AppColors.tertiaryFixedDim, shape: BoxShape.circle),
+        child: const Icon(Symbols.check, size: 15, color: AppColors.tertiaryContainer, weight: 700),
+      ),
       _ when isCurrent => Container(
-          width: 22,
-          height: 22,
-          decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppColors.secondary, width: 2)),
-          child: Center(child: Container(width: 10, height: 10, decoration: const BoxDecoration(color: AppColors.secondary, shape: BoxShape.circle))),
+        width: 22,
+        height: 22,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(color: AppColors.secondary, width: 2),
         ),
+        child: Center(
+          child: Container(
+            width: 10,
+            height: 10,
+            decoration: const BoxDecoration(color: AppColors.secondary, shape: BoxShape.circle),
+          ),
+        ),
+      ),
       TaskStatus.skipped => const Icon(Symbols.do_not_disturb_on, size: 18, color: AppColors.outline),
-      _ => Container(width: 10, height: 10, decoration: const BoxDecoration(color: AppColors.outlineVariant, shape: BoxShape.circle)),
+      _ => Container(
+        width: 10,
+        height: 10,
+        decoration: const BoxDecoration(color: AppColors.outlineVariant, shape: BoxShape.circle),
+      ),
     };
 
     return InkWell(
       onTap: onTap,
       borderRadius: AppRadius.control,
       child: IntrinsicHeight(
-        child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          SizedBox(
-            width: 28,
-            child: Column(children: [
-              SizedBox(height: 26, child: Center(child: marker)),
-              if (!isLast) Expanded(child: Container(width: 2, color: done ? AppColors.tertiaryFixedDim : AppColors.surfaceContainerHigh)),
-            ]),
-          ),
-          Gap.sm,
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 3, bottom: AppSpace.lg),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                Row(children: [
-                  Expanded(
-                    child: Text(
-                      number == null ? task.name : '$number. ${task.name}',
-                      style: AppText.titleSm.copyWith(
-                        color: isCurrent ? AppColors.secondary : (skipped ? AppColors.outline : AppColors.onSurface),
-                        decoration: skipped ? TextDecoration.lineThrough : null,
-                      ),
-                    ),
-                  ),
-                  if (isCurrent && task.status == TaskStatus.inProgress)
-                    const StatusPill(label: 'In Progress', tone: StatusTone.info, showDot: false)
-                  else if (date != null)
-                    Text(Fmt.shortDate(date), style: AppText.labelMd.copyWith(color: AppColors.onSurfaceVariant)),
-                ]),
-                const SizedBox(height: 2),
-                Text(subtitle, style: AppText.bodySm.copyWith(color: AppColors.onSurfaceVariant)),
-                if (isCurrent && !task.isMilestone && task.estimatedSeconds > 0) ...[
-                  Gap.sm,
-                  JobProgressBar(percent: task.progressPercent, height: 6),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(
+              width: 28,
+              child: Column(
+                children: [
+                  SizedBox(height: 26, child: Center(child: marker)),
+                  if (!isLast) Expanded(child: Container(width: 2, color: done ? AppColors.tertiaryFixedDim : AppColors.surfaceContainerHigh)),
                 ],
-              ]),
+              ),
             ),
-          ),
-        ]),
+            Gap.sm,
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 3, bottom: AppSpace.lg),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            number == null ? task.name : '$number. ${task.name}',
+                            style: AppText.titleSm.copyWith(
+                              color: isCurrent ? AppColors.secondary : (skipped ? AppColors.outline : AppColors.onSurface),
+                              decoration: skipped ? TextDecoration.lineThrough : null,
+                            ),
+                          ),
+                        ),
+                        if (isCurrent && task.status == TaskStatus.inProgress)
+                          const StatusPill(label: 'In Progress', tone: StatusTone.info, showDot: false)
+                        else if (date != null)
+                          Text(Fmt.shortDate(date), style: AppText.labelMd.copyWith(color: AppColors.onSurfaceVariant)),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(subtitle, style: AppText.bodySm.copyWith(color: AppColors.onSurfaceVariant)),
+                    if (isCurrent && !task.isMilestone && task.estimatedSeconds > 0) ...[Gap.sm, JobProgressBar(percent: task.progressPercent, height: 6)],
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -673,62 +779,302 @@ class _SpecificationsCard extends ConsumerWidget {
     final current = ref.watch(currentMeasurementsProvider(job.customerId)).value;
     final customer = ref.watch(customerProvider(job.customerId)).value;
     final unit = displayUnitFor(customer, ref.watch(defaultMeasurementUnitProvider));
-    final values = [
-      for (final code in _highlight)
-        ?current?.values.where((v) => v.code == code && v.valueCm != null).firstOrNull,
-    ].take(3).toList();
+    final values = [for (final code in _highlight) ?current?.values.where((v) => v.code == code && v.valueCm != null).firstOrNull].take(3).toList();
     final notes = [job.description, job.notes, customer?.stylePreferences].whereType<String>().where((s) => s.trim().isNotEmpty).toList();
 
     return AppCard(
       padding: const EdgeInsets.all(AppSpace.lg),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Row(children: [
-          const Icon(Symbols.tune, size: 20, color: AppColors.onSurface),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const Icon(Symbols.tune, size: 20, color: AppColors.onSurface),
+              Gap.sm,
+              Expanded(child: Text('Client Specifications', style: AppText.titleSm)),
+              AppButton(label: 'Full Dossier', icon: Symbols.arrow_forward, variant: AppButtonVariant.text, size: AppButtonSize.small, onPressed: () => context.push(Routes.customer(job.customerId))),
+            ],
+          ),
+          Gap.md,
+          if (values.isEmpty)
+            Text(current == null ? 'Loading measurements…' : 'No measurements recorded for ${job.customerName} yet.', style: AppText.bodySm.copyWith(color: AppColors.onSurfaceVariant))
+          else
+            Row(
+              children: [
+                for (final (i, v) in values.indexed) ...[
+                  if (i > 0) Gap.sm,
+                  Expanded(
+                    child: InsetTile(
+                      padding: const EdgeInsets.symmetric(vertical: AppSpace.md),
+                      child: Column(
+                        children: [
+                          Text(v.label.split(' ').first, style: AppText.labelSm.copyWith(color: AppColors.onSurfaceVariant), maxLines: 1),
+                          const SizedBox(height: 2),
+                          Text.rich(
+                            TextSpan(
+                              children: [
+                                TextSpan(text: unit.format(v.valueCm!), style: AppText.metricNum),
+                                TextSpan(
+                                  text: ' ${unit.code}',
+                                  style: AppText.bodySm.copyWith(color: AppColors.onSurfaceVariant),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          if (job.measuredAt != null) ...[Gap.sm, Text('This job uses measurements from ${Fmt.date(job.measuredAt!)}.', style: AppText.bodySm.copyWith(color: AppColors.onSurfaceVariant))],
+          if (notes.isNotEmpty) ...[
+            Gap.md,
+            InsetTile(
+              padding: const EdgeInsets.all(AppSpace.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('STYLING & FINISH NOTES', style: AppText.overline.copyWith(color: AppColors.secondary)),
+                  const SizedBox(height: 4),
+                  for (final note in notes) Text(note, style: AppText.bodyMd),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Fittings and other appointments booked for this job, with "Schedule fitting".
+class _AppointmentsCard extends ConsumerWidget {
+  const _AppointmentsCard({required this.job});
+
+  final Job job;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final appointments = ref.watch(jobAppointmentsProvider(job.id)).value ?? const <Appointment>[];
+    return AppCard(
+      padding: const EdgeInsets.all(AppSpace.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const Icon(Symbols.event, size: 20, color: AppColors.onSurface),
+              Gap.sm,
+              Expanded(child: Text('Fittings & Appointments', style: AppText.titleSm)),
+              if (!job.status.isClosed)
+                AppButton(
+                  label: 'Schedule',
+                  icon: Symbols.add,
+                  variant: AppButtonVariant.text,
+                  size: AppButtonSize.small,
+                  onPressed: () => context.push(Routes.appointmentNew(customerId: job.customerId, jobId: job.id, type: 'fitting')),
+                ),
+            ],
+          ),
           Gap.sm,
-          Expanded(child: Text('Client Specifications', style: AppText.titleSm)),
-          AppButton(label: 'Full Dossier', icon: Symbols.arrow_forward, variant: AppButtonVariant.text, size: AppButtonSize.small, onPressed: () => context.push(Routes.customer(job.customerId))),
-        ]),
-        Gap.md,
-        if (values.isEmpty)
-          Text(
-            current == null ? 'Loading measurements…' : 'No measurements recorded for ${job.customerName} yet.',
-            style: AppText.bodySm.copyWith(color: AppColors.onSurfaceVariant),
-          )
-        else
-          Row(children: [
-            for (final (i, v) in values.indexed) ...[
-              if (i > 0) Gap.sm,
-              Expanded(
-                child: InsetTile(
-                  padding: const EdgeInsets.symmetric(vertical: AppSpace.md),
-                  child: Column(children: [
-                    Text(v.label.split(' ').first, style: AppText.labelSm.copyWith(color: AppColors.onSurfaceVariant), maxLines: 1),
-                    const SizedBox(height: 2),
-                    Text.rich(TextSpan(children: [
-                      TextSpan(text: unit.format(v.valueCm!), style: AppText.metricNum),
-                      TextSpan(text: ' ${unit.code}', style: AppText.bodySm.copyWith(color: AppColors.onSurfaceVariant)),
-                    ])),
-                  ]),
+          if (appointments.isEmpty)
+            const InlineEmpty(icon: Symbols.event_available, message: 'No fitting booked yet.')
+          else
+            for (final a in appointments)
+              InkWell(
+                onTap: () => context.push(Routes.appointment(a.id)),
+                borderRadius: AppRadius.control,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: AppSpace.sm),
+                  child: Row(
+                    children: [
+                      Icon(a.type.icon, size: 20, color: a.status.isOpen ? AppColors.secondary : AppColors.outline),
+                      Gap.md,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              a.title,
+                              style: AppText.bodyMd.copyWith(fontWeight: FontWeight.w600, decoration: a.status == AppointmentStatus.cancelled ? TextDecoration.lineThrough : null),
+                            ),
+                            Text('${Fmt.date(a.startsAt)} · ${hm(a.startsAt)}${a.location == null ? '' : ' · ${a.location}'}', style: AppText.bodySm.copyWith(color: AppColors.onSurfaceVariant)),
+                          ],
+                        ),
+                      ),
+                      StatusPill(label: a.status.label, tone: appointmentTone(a.status), showDot: false),
+                    ],
+                  ),
                 ),
               ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Materials used for the job (usage minus returns, per material), from the stock ledger.
+class _MaterialsCard extends ConsumerWidget {
+  const _MaterialsCard({required this.job});
+
+  final Job job;
+
+  Future<void> _record(BuildContext context) async {
+    final itemId = await pickMaterial(context);
+    if (itemId == null || !context.mounted) return;
+    final saved = await showStockSheet(context, itemId: itemId, type: TransactionType.usage, jobId: job.id);
+    if (saved == true && context.mounted) showAppSnack(context, 'Usage recorded for #${job.jobNumber ?? 'New'}.');
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final entries = ref.watch(jobMaterialsProvider(job.id)).value ?? const <InventoryTransaction>[];
+    final used = <String, ({String name, String unit, double quantity})>{};
+    for (final e in entries) {
+      final prev = used[e.itemId];
+      used[e.itemId] = (name: e.itemName ?? 'Material', unit: e.unit ?? '', quantity: (prev?.quantity ?? 0) - e.quantityChange);
+    }
+    return AppCard(
+      padding: const EdgeInsets.all(AppSpace.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const Icon(Symbols.inventory_2, size: 20, color: AppColors.onSurface),
+              Gap.sm,
+              Expanded(child: Text('Materials Used', style: AppText.titleSm)),
+              if (job.status != JobStatus.cancelled) AppButton(label: 'Record', icon: Symbols.add, variant: AppButtonVariant.text, size: AppButtonSize.small, onPressed: () => _record(context)),
             ],
-          ]),
-        if (job.measuredAt != null) ...[
-          Gap.sm,
-          Text('This job uses measurements from ${Fmt.date(job.measuredAt!)}.', style: AppText.bodySm.copyWith(color: AppColors.onSurfaceVariant)),
-        ],
-        if (notes.isNotEmpty) ...[
-          Gap.md,
-          InsetTile(
-            padding: const EdgeInsets.all(AppSpace.md),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('STYLING & FINISH NOTES', style: AppText.overline.copyWith(color: AppColors.secondary)),
-              const SizedBox(height: 4),
-              for (final note in notes) Text(note, style: AppText.bodyMd),
-            ]),
           ),
+          Gap.sm,
+          if (used.isEmpty)
+            const InlineEmpty(icon: Symbols.inventory_2, message: 'No material recorded for this job yet.')
+          else
+            for (final MapEntry(key: itemId, value: m) in used.entries)
+              InkWell(
+                onTap: () => context.push(Routes.inventoryItem(itemId)),
+                borderRadius: AppRadius.control,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: AppSpace.sm),
+                  child: Row(
+                    children: [
+                      const Icon(Symbols.content_cut, size: 18, color: AppColors.secondary),
+                      Gap.md,
+                      Expanded(
+                        child: Text(
+                          m.name,
+                          style: AppText.bodyMd.copyWith(fontWeight: FontWeight.w600),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      Text(StockUnits.format(m.quantity, m.unit), style: AppText.labelMd.copyWith(fontFeatures: const [FontFeature.tabularFigures()])),
+                    ],
+                  ),
+                ),
+              ),
         ],
-      ]),
+      ),
+    );
+  }
+}
+
+/// AI production analysis: when the job is expected to finish against its due date (online; the AI
+/// service lays the queue on the bench capacity). Hidden quietly when the forecast is unavailable.
+class _AiForecastCard extends ConsumerWidget {
+  const _AiForecastCard({required this.job});
+
+  final Job job;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final forecast = ref.watch(jobForecastProvider(job.id));
+    String day(String ymd) => DateFormat('EEE d MMM').format(DateTime.parse(ymd));
+    // Stitch "Atelier AI Production Analysis": light blue panel with a dark icon tile.
+    return AppCard(
+      color: AppColors.surfaceContainerLow,
+      padding: const EdgeInsets.all(AppSpace.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(color: AppColors.primaryContainer, borderRadius: AppRadius.control),
+                child: const Icon(Symbols.auto_awesome, size: 18, color: AppColors.tertiaryFixed, fill: 1),
+              ),
+              Gap.sm,
+              Expanded(child: Text('AI Production Analysis', style: AppText.titleSm)),
+              if (forecast.value case final f?)
+                StatusPill(
+                  label: switch (f['risk']) {
+                    'high' => 'High delay risk',
+                    'medium' => 'No time to spare',
+                    'low' => 'On track',
+                    _ => 'No due date',
+                  },
+                  tone: switch (f['risk']) {
+                    'high' => StatusTone.danger,
+                    'medium' => StatusTone.warning,
+                    'low' => StatusTone.success,
+                    _ => StatusTone.neutral,
+                  },
+                ),
+            ],
+          ),
+          Gap.sm,
+          switch (forecast) {
+            AsyncData(:final value?) => Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: InsetTile(
+                        padding: const EdgeInsets.all(AppSpace.md),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Expected finish', style: AppText.bodySm.copyWith(color: AppColors.onSurfaceVariant)),
+                            Text(value['finish_date'] == null ? '—' : day(value['finish_date'] as String), style: AppText.titleSm),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Gap.sm,
+                    Expanded(
+                      child: InsetTile(
+                        padding: const EdgeInsets.all(AppSpace.md),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Queue position', style: AppText.bodySm.copyWith(color: AppColors.onSurfaceVariant)),
+                            Text('${value['position']}', style: AppText.titleSm),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                Gap.sm,
+                for (final r in (value['reasons'] as List).cast<String>())
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text('• $r', style: AppText.bodySm.copyWith(color: AppColors.onSurfaceVariant)),
+                  ),
+              ],
+            ),
+            AsyncData() => const InlineEmpty(icon: Symbols.pending_actions, message: 'Not in the production queue.'),
+            AsyncError() => const InlineEmpty(icon: Symbols.cloud_off, message: 'The forecast needs a connection to the AI assistant.'),
+            _ => const LinearProgressIndicator(minHeight: 2),
+          },
+        ],
+      ),
     );
   }
 }

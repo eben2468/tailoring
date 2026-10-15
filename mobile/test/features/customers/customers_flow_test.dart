@@ -52,15 +52,16 @@ void main() {
   });
 
   testWidgets('list shows customers with measurement status and searches by name', (tester) async {
+    final kofi = backend.addCustomer('Kofi Mensah', phone: '+233241110001')['id'] as String;
     backend
-      ..addCustomer('Kofi Mensah', phone: '+233241110001', sets: 2, activeJobs: 1)
-      ..addCustomer('Ama Owusu', phone: '+233201110002');
+      ..addCustomer('Ama Owusu', phone: '+233201110002')
+      ..jobs.addJob(kofi);
     await pumpApp(tester);
 
     expect(find.text('Kofi Mensah'), findsOneWidget);
     expect(find.text('+233 24 111 0001'), findsOneWidget);
     expect(find.text('1 active job'), findsOneWidget);
-    expect(find.text('Not measured'), findsNWidgets(2));
+    expect(find.text('Not measured'), findsNWidgets(2)); // summaries are calculated from the local copy
     expect(find.text('2 active customers'), findsOneWidget);
 
     await tester.enterText(find.byType(TextField).first, 'ama');
@@ -92,7 +93,7 @@ void main() {
   });
 
   testWidgets('profile dossier shows current measurements in the customer unit, with history', (tester) async {
-    final kofi = backend.addCustomer('Kofi Mensah', phone: '+233241110001', sets: 2);
+    final kofi = backend.addCustomer('Kofi Mensah', phone: '+233241110001');
     backend
       ..addSet(kofi['id'] as String, {3: 104.14, 4: 85.09}, at: DateTime.utc(2026, 9, 1))
       ..addSet(kofi['id'] as String, {4: 86.995}, at: DateTime.utc(2026, 10, 1), texts: {20: 'Low right'}, notes: 'Erect posture');

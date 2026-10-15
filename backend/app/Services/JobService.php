@@ -89,7 +89,7 @@ final class JobService
                     'task_name' => $task['name'],
                     'sort_order' => $i + 1,
                     'estimated_seconds' => $task['estimated_seconds'],
-                ]))->save();
+                ]))->forceFill(isset($task['id']) ? ['id' => Uuid::toBytes($task['id'])] : [])->save();
             }
 
             $this->audit->log($context, 'job.created', 'job', $job->uuid(), [
@@ -324,8 +324,8 @@ final class JobService
      * The tasks a new job starts with: the client's list (edited routing) or the job type's template.
      * Milestones never carry hours.
      *
-     * @param  list<array{task_type_id: int, task_name?: string|null, estimated_seconds?: int|null}>|null  $requested
-     * @return list<array{task_type: TaskType, name: string, estimated_seconds: int}>
+     * @param  list<array{task_type_id: int, id?: string|null, task_name?: string|null, estimated_seconds?: int|null}>|null  $requested
+     * @return list<array{task_type: TaskType, name: string, estimated_seconds: int, id?: string|null}>
      */
     private function plannedTasks(JobType $jobType, ?array $requested): array
     {
@@ -349,6 +349,7 @@ final class JobService
             }
             $tasks[] = [
                 'task_type' => $type,
+                'id' => $task['id'] ?? null,
                 'name' => trim((string) ($task['task_name'] ?? '')) ?: $type->type_name,
                 'estimated_seconds' => $type->isMilestone() ? 0 : (int) ($task['estimated_seconds'] ?? 0),
             ];
